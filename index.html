@@ -959,11 +959,12 @@ document.getElementById("signup-form").addEventListener("submit", async (e) => {
 
 
 // ─────────────────────────────────────────────────────────
-// HEARTBEAT PULSE ANIMATION
+// WATER BUBBLE ANIMATION
 //
-// Each blob fires with a sharp quick rise → fast decay →
-// soft echo → long rest. Like a real pulse, not a sine wave.
-// Blobs stagger slightly so the pulse ripples across the field.
+// Glassy translucent bubbles with specular highlights drift
+// slowly across the background. Every ~5s a heartbeat pulse
+// ripples through — rim brightens, highlight flares, bubble
+// swells slightly then settles back.
 //
 // TUNING PARAMETERS below — clearly marked
 // ─────────────────────────────────────────────────────────
@@ -973,95 +974,134 @@ document.getElementById("signup-form").addEventListener("submit", async (e) => {
   const ctx    = canvas.getContext('2d');
 
   // ── TUNE ──────────────────────────────────────────────
-  const BLOB_COUNT     = 12;    // number of blobs
-  const RADIUS_MIN     = 120;   // blob base radius min (px)
-  const RADIUS_MAX     = 300;   // blob base radius max (px)
-  const CYCLE_MS       = 5000;  // ms between heartbeats
-  const PULSE_SWELL    = 0.45;  // how much radius expands on beat (0=none)
-  const OPACITY_BASE   = 0.22;  // resting opacity per blob
-  const OPACITY_FLARE  = 0.35;  // extra opacity added at peak of beat
-  const DRIFT          = 0.6;   // px per frame organic drift
-  const BLUR_PX        = 35;    // gaussian blur (px)
-  const STAGGER        = 0.18;  // phase stagger across blobs (0=all fire together)
-  const PARALLAX       = 0.04;  // mouse parallax strength
-  const MOBILE_FACTOR  = 0.6;   // blob count reduction on mobile
+  const BUBBLE_COUNT  = 12;     // number of bubbles
+  const RADIUS_MIN    = 55;     // bubble base radius min (px)
+  const RADIUS_MAX    = 145;    // bubble base radius max (px)
+  const CYCLE_MS      = 5000;   // ms between heartbeat pulses
+  const PULSE_SWELL   = 0.30;   // radius expansion on beat
+  const DRIFT         = 0.35;   // px per frame organic drift
+  const STAGGER       = 0.22;   // phase stagger across bubbles
+  const PARALLAX      = 0.03;   // mouse parallax strength
+  const MOBILE_FACTOR = 0.6;    // bubble count reduction on mobile
 
-  // Soft teal / sage palette — [R, G, B]
+  // Soft teal / sage — { body: [R,G,B], rim: [R,G,B] }
   const PALETTE = [
-    [80,  160, 140],
-    [100, 180, 160],
-    [60,  140, 120],
-    [120, 190, 170],
-    [90,  155, 135],
-    [70,  150, 130],
+    { body: [80,160,140],  rim: [120,200,180] },
+    { body: [60,140,120],  rim: [100,180,160] },
+    { body: [90,155,135],  rim: [130,195,175] },
+    { body: [70,150,130],  rim: [110,185,165] },
+    { body: [100,170,150], rim: [140,205,185] },
   ];
   // ──────────────────────────────────────────────────────
 
-  // Heartbeat curve: sharp Gaussian rise + softer echo, then silence
-  // t = 0..1 position within one cycle. Returns intensity 0..1.
+  // Heartbeat curve: sharp Gaussian spike + soft echo, then silence
   function heartbeatCurve(t) {
-    // Primary beat — very sharp, peaks at t≈0.04
     const b1 = Math.exp(-((t - 0.04) ** 2) / 0.0012);
-    // Diastolic echo — softer, slightly later
     const b2 = 0.50 * Math.exp(-((t - 0.13) ** 2) / 0.0020);
     return Math.min(1, Math.max(0, b1 + b2));
   }
 
-  let W, H, blobs = [];
+  // Draw one glassy bubble at its current state
+  function drawBubble(ctx, b, hb) {
+    const x = b.x, y = b.y, r = b.r;
+    const [br, bg, bb] = b.pal.body;
+    const [rr, rg, rb] = b.pal.rim;
+    const p = hb;
+
+    // 1. Translucent body — near-empty centre, faint teal fill
+    const bodyGrad = ctx.createRadialGradient(x - r*0.10, y - r*0.08, r*0.02, x, y, r);
+    bodyGrad.addColorStop(0,    `rgba(${br},${bg},${bb},${(0.02 + p*0.04).toFixed(3)})`);
+    bodyGrad.addColorStop(0.65, `rgba(${br},${bg},${bb},${(0.07 + p*0.06).toFixed(3)})`);
+    bodyGrad.addColorStop(0.88, `rgba(${rr},${rg},${rb},${(0.18 + p*0.16).toFixed(3)})`);
+    bodyGrad.addColorStop(1,    `rgba(${rr},${rg},${rb},0.02)`);
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fillStyle = bodyGrad;
+    ctx.fill();
+
+    // 2. Rim glow — tightens and brightens on pulse
+    const rimGrad = ctx.createRadialGradient(x, y, r * 0.72, x, y, r);
+    rimGrad.addColorStop(0,   `rgba(${rr},${rg},${rb},0)`);
+    rimGrad.addColorStop(0.8, `rgba(${rr},${rg},${rb},${(0.10 + p*0.18).toFixed(3)})`);
+    rimGrad.addColorStop(1,   `rgba(255,255,255,${(0.06 + p*0.12).toFixed(3)})`);
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fillStyle = rimGrad;
+    ctx.fill();
+
+    // 3. Primary specular — bright white teardrop upper-left
+    const hlX = x + b.hlOx * r, hlY = y + b.hlOy * r;
+    const hlR = r * (0.26 + p * 0.10);
+    const hlGrad = ctx.createRadialGradient(hlX, hlY, 0, hlX, hlY, hlR);
+    hlGrad.addColorStop(0,   `rgba(255,255,255,${(0.45 + p*0.35).toFixed(3)})`);
+    hlGrad.addColorStop(0.4, `rgba(255,255,255,${(0.14 + p*0.12).toFixed(3)})`);
+    hlGrad.addColorStop(1,   `rgba(255,255,255,0)`);
+    ctx.beginPath();
+    ctx.arc(hlX, hlY, hlR, 0, Math.PI * 2);
+    ctx.fillStyle = hlGrad;
+    ctx.fill();
+
+    // 4. Secondary micro-flare — faint, opposite side
+    const fl2X = x - b.hlOx * r * 0.55, fl2Y = y - b.hlOy * r * 0.55;
+    const fl2R = r * 0.10;
+    const fl2G = ctx.createRadialGradient(fl2X, fl2Y, 0, fl2X, fl2Y, fl2R);
+    fl2G.addColorStop(0, `rgba(255,255,255,${(0.15 + p*0.12).toFixed(3)})`);
+    fl2G.addColorStop(1, `rgba(255,255,255,0)`);
+    ctx.beginPath();
+    ctx.arc(fl2X, fl2Y, fl2R, 0, Math.PI * 2);
+    ctx.fillStyle = fl2G;
+    ctx.fill();
+  }
+
+  let W, H, bubbles = [];
   let mx = 0.5, my = 0.5, tmx = 0.5, tmy = 0.5;
-  let off, octx, raf;
+  let raf;
 
   function isMobile() { return window.innerWidth < 768; }
 
   function resize() {
     W = canvas.width  = window.innerWidth;
     H = canvas.height = window.innerHeight;
-    off = document.createElement('canvas');
-    off.width = W; off.height = H;
-    octx = off.getContext('2d');
     init();
   }
 
   function init() {
-    blobs = [];
-    const count = Math.floor(BLOB_COUNT * (isMobile() ? MOBILE_FACTOR : 1));
-    // Grid distribution with jitter — full coverage from frame 1
+    bubbles = [];
+    const count = Math.floor(BUBBLE_COUNT * (isMobile() ? MOBILE_FACTOR : 1));
     const cols = Math.ceil(Math.sqrt(count * W / H));
     const rows = Math.ceil(count / cols);
     const cw = W / cols, ch = H / rows;
 
     for (let i = 0; i < count; i++) {
       const col = i % cols, row = Math.floor(i / cols);
-      const pal = PALETTE[Math.floor(Math.random() * PALETTE.length)];
-      const br  = RADIUS_MIN + Math.random() * (RADIUS_MAX - RADIUS_MIN);
-      blobs.push({
-        x:    (col + 0.15 + Math.random() * 0.7) * cw,
-        y:    (row + 0.15 + Math.random() * 0.7) * ch,
-        baseR: br, r: br,
-        col:  pal,
-        baseOpacity: OPACITY_BASE + Math.random() * 0.08,
+      const pal = PALETTE[i % PALETTE.length];
+      const r   = RADIUS_MIN + Math.random() * (RADIUS_MAX - RADIUS_MIN);
+      bubbles.push({
+        x: (col + 0.15 + Math.random() * 0.7) * cw,
+        y: (row + 0.15 + Math.random() * 0.7) * ch,
+        baseR: r, r,
+        pal,
         ax: Math.random() * Math.PI * 2,
         ay: Math.random() * Math.PI * 2,
-        sx: 0.0002 + Math.random() * 0.0003,
-        sy: 0.0002 + Math.random() * 0.0003,
-        // Stagger: each blob fires slightly after the previous
-        // creating a ripple rather than a single flash
+        sx: 0.00012 + Math.random() * 0.00015,
+        sy: 0.00012 + Math.random() * 0.00015,
         phaseOffset: (i / count) * STAGGER,
+        // Specular highlight offset (fraction of radius), upper-left
+        hlOx: -0.28 + Math.random() * 0.08,
+        hlOy: -0.30 + Math.random() * 0.08,
       });
     }
   }
 
   function frame(ts) {
-    octx.clearRect(0, 0, W, H);
     ctx.clearRect(0, 0, W, H);
 
-    // Smooth indirect mouse parallax
     mx += (tmx - mx) * 0.03;
     my += (tmy - my) * 0.03;
     const ox = (0.5 - mx) * W * PARALLAX;
     const oy = (0.5 - my) * H * PARALLAX;
 
-    blobs.forEach(b => {
+    bubbles.forEach(b => {
       // Slow organic drift
       b.ax += b.sx; b.ay += b.sy;
       b.x  += Math.sin(b.ax) * DRIFT;
@@ -1072,51 +1112,25 @@ document.getElementById("signup-form").addEventListener("submit", async (e) => {
       if (b.y < -pad) b.y = H + pad;
       if (b.y > H + pad) b.y = -pad;
 
-      // Heartbeat phase — staggered per blob
+      // Heartbeat pulse — staggered per bubble
       const cycleT = ((ts / CYCLE_MS) + b.phaseOffset) % 1;
-      const hb = heartbeatCurve(cycleT);  // 0..1 beat intensity
-
-      // Sharp radius swell + opacity flare on beat
+      const hb = heartbeatCurve(cycleT);
       b.r = b.baseR * (1 + PULSE_SWELL * hb);
-      const opacity = b.baseOpacity + OPACITY_FLARE * hb;
 
-      // Radial gradient blob
-      const gx = b.x + ox, gy = b.y + oy;
-      const [r, g, bv] = b.col;
-      const grad = octx.createRadialGradient(gx, gy, 0, gx, gy, b.r);
-      grad.addColorStop(0,   `rgba(${r},${g},${bv},${opacity.toFixed(3)})`);
-      grad.addColorStop(0.4, `rgba(${r},${g},${bv},${(opacity * 0.55).toFixed(3)})`);
-      grad.addColorStop(1,   `rgba(${r},${g},${bv},0)`);
-      octx.beginPath();
-      octx.arc(gx, gy, b.r, 0, Math.PI * 2);
-      octx.fillStyle = grad;
-      octx.fill();
+      ctx.save();
+      ctx.translate(ox, oy);
+      drawBubble(ctx, b, hb);
+      ctx.restore();
     });
-
-    // Blit offscreen → main with gaussian blur
-    ctx.filter = `blur(${BLUR_PX}px)`;
-    ctx.drawImage(off, 0, 0);
-    ctx.filter = 'none';
 
     raf = requestAnimationFrame(frame);
   }
 
-  // Mouse / touch tracking
-  window.addEventListener('mousemove', e => {
-    tmx = e.clientX / W; tmy = e.clientY / H;
-  });
+  window.addEventListener('mousemove', e => { tmx = e.clientX/W; tmy = e.clientY/H; });
   window.addEventListener('touchmove', e => {
-    if (e.touches.length) {
-      tmx = e.touches[0].clientX / W;
-      tmy = e.touches[0].clientY / H;
-    }
+    if (e.touches.length) { tmx = e.touches[0].clientX/W; tmy = e.touches[0].clientY/H; }
   }, { passive: true });
-
-  window.addEventListener('resize', () => {
-    cancelAnimationFrame(raf);
-    resize();
-    raf = requestAnimationFrame(frame);
-  });
+  window.addEventListener('resize', () => { cancelAnimationFrame(raf); resize(); raf = requestAnimationFrame(frame); });
 
   resize();
   raf = requestAnimationFrame(frame);
