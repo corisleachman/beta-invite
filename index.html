@@ -959,12 +959,15 @@ document.getElementById("signup-form").addEventListener("submit", async (e) => {
 
 
 // ─────────────────────────────────────────────────────────
-// WATER BUBBLE ANIMATION
+// WOBBLY WATER BUBBLE ANIMATION
 //
-// Glassy translucent bubbles with specular highlights drift
-// slowly across the background. Every ~5s a heartbeat pulse
-// ripples through — rim brightens, highlight flares, bubble
-// swells slightly then settles back.
+// Organic, non-circular bubbles deformed with layered Fourier
+// sine waves — each bubble has its own wobble frequency/phase
+// so no two look the same. Glassy look: near-transparent body,
+// bright rim, white specular highlight upper-left.
+//
+// Every ~5s a heartbeat pulse ripples through — rim flares,
+// specular brightens, wobble amplitude spikes (bubble shudders).
 //
 // TUNING PARAMETERS below — clearly marked
 // ─────────────────────────────────────────────────────────
@@ -975,14 +978,16 @@ document.getElementById("signup-form").addEventListener("submit", async (e) => {
 
   // ── TUNE ──────────────────────────────────────────────
   const BUBBLE_COUNT  = 12;     // number of bubbles
-  const RADIUS_MIN    = 55;     // bubble base radius min (px)
-  const RADIUS_MAX    = 145;    // bubble base radius max (px)
+  const RADIUS_MIN    = 42;     // bubble base radius min (px)
+  const RADIUS_MAX    = 117;    // bubble base radius max (px)
   const CYCLE_MS      = 5000;   // ms between heartbeat pulses
-  const PULSE_SWELL   = 0.30;   // radius expansion on beat
+  const PULSE_SWELL   = 0.28;   // radius expansion on beat
+  const WOBBLE_PULSE  = 0.70;   // wobble amplitude multiplier at beat peak
   const DRIFT         = 0.35;   // px per frame organic drift
   const STAGGER       = 0.22;   // phase stagger across bubbles
   const PARALLAX      = 0.03;   // mouse parallax strength
   const MOBILE_FACTOR = 0.6;    // bubble count reduction on mobile
+  const BLOB_STEPS    = 80;     // polygon resolution for wobble path
 
   // Soft teal / sage — { body: [R,G,B], rim: [R,G,B] }
   const PALETTE = [
@@ -1001,55 +1006,83 @@ document.getElementById("signup-form").addEventListener("submit", async (e) => {
     return Math.min(1, Math.max(0, b1 + b2));
   }
 
-  // Draw one glassy bubble at its current state
-  function drawBubble(ctx, b, hb) {
-    const x = b.x, y = b.y, r = b.r;
-    const [br, bg, bb] = b.pal.body;
-    const [rr, rg, rb] = b.pal.rim;
+  // Build wobbly blob polygon. Three sine-wave layers at different
+  // frequencies and speeds deform each point's distance from centre.
+  function buildBlobPath(cx, cy, baseR, wobble, ts) {
+    const pts = [];
+    for (let i = 0; i < BLOB_STEPS; i++) {
+      const a = (i / BLOB_STEPS) * Math.PI * 2;
+      const d1 = Math.sin(a * 2 + ts * 0.00060 + wobble.p1) * wobble.a1;
+      const d2 = Math.sin(a * 3 + ts * 0.00043 + wobble.p2) * wobble.a2;
+      const d3 = Math.sin(a * 5 + ts * 0.00028 + wobble.p3) * wobble.a3;
+      const r  = baseR * (1 + d1 + d2 + d3);
+      pts.push([cx + Math.cos(a) * r, cy + Math.sin(a) * r]);
+    }
+    return pts;
+  }
+
+  // Draw one bubble using clipping so all fills stay within its wobbly outline
+  function drawBubble(ctx, b, hb, ts) {
+    const { x, y, r, pal, wobble, hlOx, hlOy } = b;
+    const [br, bg, bb] = pal.body;
+    const [rr, rg, rb] = pal.rim;
     const p = hb;
 
-    // 1. Translucent body — near-empty centre, faint teal fill
-    const bodyGrad = ctx.createRadialGradient(x - r*0.10, y - r*0.08, r*0.02, x, y, r);
-    bodyGrad.addColorStop(0,    `rgba(${br},${bg},${bb},${(0.02 + p*0.04).toFixed(3)})`);
-    bodyGrad.addColorStop(0.65, `rgba(${br},${bg},${bb},${(0.07 + p*0.06).toFixed(3)})`);
-    bodyGrad.addColorStop(0.88, `rgba(${rr},${rg},${rb},${(0.18 + p*0.16).toFixed(3)})`);
-    bodyGrad.addColorStop(1,    `rgba(${rr},${rg},${rb},0.02)`);
+    // Scale wobble amplitude up on heartbeat — bubble briefly shudders
+    const wScale = 1 + p * WOBBLE_PULSE;
+    const sw = { a1: wobble.a1 * wScale, a2: wobble.a2 * wScale, a3: wobble.a3 * wScale,
+                 p1: wobble.p1, p2: wobble.p2, p3: wobble.p3 };
+
+    const pts = buildBlobPath(x, y, r, sw, ts);
+
+    // Clip to wobbly outline
+    ctx.save();
     ctx.beginPath();
-    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.moveTo(pts[0][0], pts[0][1]);
+    for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
+    ctx.closePath();
+    ctx.clip();
+
+    // 1. Translucent body — near-empty centre, faint teal edge
+    const bodyGrad = ctx.createRadialGradient(x - r*0.10, y - r*0.08, r*0.02, x, y, r*1.1);
+    bodyGrad.addColorStop(0,    `rgba(${br},${bg},${bb},${(0.015 + p*0.030).toFixed(3)})`);
+    bodyGrad.addColorStop(0.60, `rgba(${br},${bg},${bb},${(0.050 + p*0.050).toFixed(3)})`);
+    bodyGrad.addColorStop(0.85, `rgba(${rr},${rg},${rb},${(0.130 + p*0.140).toFixed(3)})`);
+    bodyGrad.addColorStop(1,    `rgba(${rr},${rg},${rb},0.01)`);
     ctx.fillStyle = bodyGrad;
-    ctx.fill();
+    ctx.fillRect(x - r*1.3, y - r*1.3, r*2.6, r*2.6);
 
-    // 2. Rim glow — tightens and brightens on pulse
-    const rimGrad = ctx.createRadialGradient(x, y, r * 0.72, x, y, r);
-    rimGrad.addColorStop(0,   `rgba(${rr},${rg},${rb},0)`);
-    rimGrad.addColorStop(0.8, `rgba(${rr},${rg},${rb},${(0.10 + p*0.18).toFixed(3)})`);
-    rimGrad.addColorStop(1,   `rgba(255,255,255,${(0.06 + p*0.12).toFixed(3)})`);
-    ctx.beginPath();
-    ctx.arc(x, y, r, 0, Math.PI * 2);
+    // 2. Rim glow — brightens and flares on pulse
+    const rimGrad = ctx.createRadialGradient(x, y, r * 0.72, x, y, r * 1.1);
+    rimGrad.addColorStop(0,    `rgba(${rr},${rg},${rb},0)`);
+    rimGrad.addColorStop(0.75, `rgba(${rr},${rg},${rb},${(0.09 + p*0.16).toFixed(3)})`);
+    rimGrad.addColorStop(1,    `rgba(255,255,255,${(0.05 + p*0.11).toFixed(3)})`);
     ctx.fillStyle = rimGrad;
-    ctx.fill();
+    ctx.fillRect(x - r*1.3, y - r*1.3, r*2.6, r*2.6);
 
-    // 3. Primary specular — bright white teardrop upper-left
-    const hlX = x + b.hlOx * r, hlY = y + b.hlOy * r;
-    const hlR = r * (0.26 + p * 0.10);
+    ctx.restore(); // unclip — specular drawn on top, unclipped for crispness
+
+    // 3. Primary specular highlight — bright white teardrop, upper-left
+    const hlX = x + hlOx * r, hlY = y + hlOy * r;
+    const hlR = r * (0.22 + p * 0.09);
     const hlGrad = ctx.createRadialGradient(hlX, hlY, 0, hlX, hlY, hlR);
-    hlGrad.addColorStop(0,   `rgba(255,255,255,${(0.45 + p*0.35).toFixed(3)})`);
-    hlGrad.addColorStop(0.4, `rgba(255,255,255,${(0.14 + p*0.12).toFixed(3)})`);
+    hlGrad.addColorStop(0,   `rgba(255,255,255,${(0.40 + p*0.30).toFixed(3)})`);
+    hlGrad.addColorStop(0.4, `rgba(255,255,255,${(0.12 + p*0.10).toFixed(3)})`);
     hlGrad.addColorStop(1,   `rgba(255,255,255,0)`);
     ctx.beginPath();
     ctx.arc(hlX, hlY, hlR, 0, Math.PI * 2);
     ctx.fillStyle = hlGrad;
     ctx.fill();
 
-    // 4. Secondary micro-flare — faint, opposite side
-    const fl2X = x - b.hlOx * r * 0.55, fl2Y = y - b.hlOy * r * 0.55;
-    const fl2R = r * 0.10;
-    const fl2G = ctx.createRadialGradient(fl2X, fl2Y, 0, fl2X, fl2Y, fl2R);
-    fl2G.addColorStop(0, `rgba(255,255,255,${(0.15 + p*0.12).toFixed(3)})`);
-    fl2G.addColorStop(1, `rgba(255,255,255,0)`);
+    // 4. Secondary micro-flare — opposite side, very faint
+    const fx = x - hlOx * r * 0.55, fy = y - hlOy * r * 0.55;
+    const fr = r * 0.09;
+    const fg = ctx.createRadialGradient(fx, fy, 0, fx, fy, fr);
+    fg.addColorStop(0, `rgba(255,255,255,${(0.14 + p*0.10).toFixed(3)})`);
+    fg.addColorStop(1, `rgba(255,255,255,0)`);
     ctx.beginPath();
-    ctx.arc(fl2X, fl2Y, fl2R, 0, Math.PI * 2);
-    ctx.fillStyle = fl2G;
+    ctx.arc(fx, fy, fr, 0, Math.PI * 2);
+    ctx.fillStyle = fg;
     ctx.fill();
   }
 
@@ -1069,26 +1102,32 @@ document.getElementById("signup-form").addEventListener("submit", async (e) => {
     bubbles = [];
     const count = Math.floor(BUBBLE_COUNT * (isMobile() ? MOBILE_FACTOR : 1));
     const cols = Math.ceil(Math.sqrt(count * W / H));
-    const rows = Math.ceil(count / cols);
-    const cw = W / cols, ch = H / rows;
+    const cw = W / cols, ch = H / Math.ceil(count / cols);
 
     for (let i = 0; i < count; i++) {
       const col = i % cols, row = Math.floor(i / cols);
-      const pal = PALETTE[i % PALETTE.length];
-      const r   = RADIUS_MIN + Math.random() * (RADIUS_MAX - RADIUS_MIN);
+      const r = RADIUS_MIN + Math.random() * (RADIUS_MAX - RADIUS_MIN);
       bubbles.push({
         x: (col + 0.15 + Math.random() * 0.7) * cw,
         y: (row + 0.15 + Math.random() * 0.7) * ch,
         baseR: r, r,
-        pal,
+        pal: PALETTE[i % PALETTE.length],
         ax: Math.random() * Math.PI * 2,
         ay: Math.random() * Math.PI * 2,
         sx: 0.00012 + Math.random() * 0.00015,
         sy: 0.00012 + Math.random() * 0.00015,
         phaseOffset: (i / count) * STAGGER,
-        // Specular highlight offset (fraction of radius), upper-left
         hlOx: -0.28 + Math.random() * 0.08,
         hlOy: -0.30 + Math.random() * 0.08,
+        wobble: {
+          // Three deformation layers — amplitude as fraction of base radius
+          a1: 0.05 + Math.random() * 0.04,    // gentle, slow
+          a2: 0.03 + Math.random() * 0.03,    // medium
+          a3: 0.018 + Math.random() * 0.015,  // fine ripple
+          p1: Math.random() * Math.PI * 2,
+          p2: Math.random() * Math.PI * 2,
+          p3: Math.random() * Math.PI * 2,
+        },
       });
     }
   }
@@ -1102,24 +1141,21 @@ document.getElementById("signup-form").addEventListener("submit", async (e) => {
     const oy = (0.5 - my) * H * PARALLAX;
 
     bubbles.forEach(b => {
-      // Slow organic drift
       b.ax += b.sx; b.ay += b.sy;
       b.x  += Math.sin(b.ax) * DRIFT;
       b.y  += Math.cos(b.ay) * DRIFT;
-      const pad = b.baseR + 10;
+      const pad = b.baseR + 20;
       if (b.x < -pad) b.x = W + pad;
       if (b.x > W + pad) b.x = -pad;
       if (b.y < -pad) b.y = H + pad;
       if (b.y > H + pad) b.y = -pad;
 
-      // Heartbeat pulse — staggered per bubble
-      const cycleT = ((ts / CYCLE_MS) + b.phaseOffset) % 1;
-      const hb = heartbeatCurve(cycleT);
+      const hb = heartbeatCurve(((ts / CYCLE_MS) + b.phaseOffset) % 1);
       b.r = b.baseR * (1 + PULSE_SWELL * hb);
 
       ctx.save();
       ctx.translate(ox, oy);
-      drawBubble(ctx, b, hb);
+      drawBubble(ctx, b, hb, ts);
       ctx.restore();
     });
 
