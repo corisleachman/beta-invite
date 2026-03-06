@@ -46,7 +46,7 @@
       height: 100%;
       pointer-events: none;
       z-index: 0;
-      opacity: 0.6;
+      opacity: 1;
     }
 
     /* ─── Layout shell ─── */
@@ -180,7 +180,7 @@
       transition: opacity 0.2s, transform 0.2s;
       letter-spacing: 0.01em;
     }
-    .btn-primary:hover { opacity: 0.6; transform: translateY(-1px); }
+    .btn-primary:hover { opacity: 1; transform: translateY(-1px); }
 
     .spots-label {
       font-size: 13px;
@@ -958,172 +958,157 @@ document.getElementById("signup-form").addEventListener("submit", async (e) => {
 
 
 // ─────────────────────────────────────────────────────────
-// PARTICLE ANIMATION — fixed blur approach
-// Uses an offscreen canvas for gaussian blur so particle
-// opacity is preserved correctly.
+// PARTICLE ANIMATION — organic breathing blobs
 //
-// TUNING PARAMETERS are marked with // TUNE below
+// TUNING: adjust the constants below freely
 // ─────────────────────────────────────────────────────────
-(function() {
+(function () {
 
   const canvas = document.getElementById('pulse-canvas');
   const ctx    = canvas.getContext('2d');
 
-  // ── TUNE: Core parameters ─────────────────────────────
-  const PARTICLE_COUNT    = 45;      // number of blobs
-  const PULSE_PERIOD      = 6500;    // ms per breath cycle
-  const BASE_RADIUS_MIN   = 80;      // min blob radius (px)
-  const BASE_RADIUS_MAX   = 220;     // max blob radius (px)
-  const PULSE_AMPLITUDE   = 0.25;    // breath swell amount (0-1)
-  const DRIFT_SPEED       = 0.00018; // how fast blobs wander
-  const OPACITY_MIN       = 0.07;    // min blob opacity
-  const OPACITY_MAX       = 0.18;    // max blob opacity
-  const PARALLAX_STRENGTH = 0.025;   // mouse field shift (0=none)
-  const BLUR_PX           = 45;      // gaussian blur in px
-  const MOBILE_FACTOR     = 0.55;    // particle reduction on mobile
+  // ── TUNE ──────────────────────────────────────────────
+  const BLOB_COUNT      = 12;     // number of blobs
+  const RADIUS_MIN      = 120;    // smallest blob radius (px)
+  const RADIUS_MAX      = 300;    // largest blob radius (px)
+  const PULSE_PERIOD    = 5000;   // ms for one breath cycle
+  const PULSE_AMOUNT    = 0.30;   // radius swell (0=none, 0.5=half again)
+  const DRIFT           = 0.8;    // px per frame drift
+  const OPACITY_MIN     = 0.25;   // min blob opacity (0-1)
+  const OPACITY_MAX     = 0.42;   // max blob opacity (0-1)
+  const BLUR_PX         = 35;     // gaussian blur (px)
+  const PARALLAX        = 0.04;   // mouse field offset strength
+  const MOBILE_FACTOR   = 0.6;    // blob count reduction on mobile
+
+  // Soft teal / sage palette — [R, G, B]
+  const PALETTE = [
+    [80,  160, 140],
+    [100, 180, 160],
+    [60,  140, 120],
+    [120, 190, 170],
+    [90,  155, 135],
+    [70,  150, 130],
+  ];
   // ──────────────────────────────────────────────────────
 
-  // Soft teal/sage palette — RGB strings
-  const COLOURS = [
-    [107, 158, 142],   // accent teal
-    [130, 185, 168],   // mid teal
-    [168, 210, 198],   // light sage
-    [90,  145, 125],   // deep sage
-    [155, 200, 188],   // soft seafoam
-    [120, 170, 155],   // muted jade
-  ];
-
-  let W, H;
-  let particles = [];
-  let mouseX = 0.5, mouseY = 0.5;
-  let targetMouseX = 0.5, targetMouseY = 0.5;
-  let raf;
-
-  // Offscreen canvas — we draw particles here then
-  // apply CSS filter blur on the main canvas image
-  let offscreen, offCtx;
+  let W, H, blobs = [];
+  let mx = 0.5, my = 0.5, tmx = 0.5, tmy = 0.5;
+  let off, octx, raf;
 
   function isMobile() { return window.innerWidth < 768; }
 
   function resize() {
     W = canvas.width  = window.innerWidth;
     H = canvas.height = window.innerHeight;
-    offscreen        = document.createElement('canvas');
-    offscreen.width  = W;
-    offscreen.height = H;
-    offCtx = offscreen.getContext('2d');
+    off = document.createElement('canvas');
+    off.width = W; off.height = H;
+    octx = off.getContext('2d');
     init();
   }
 
-  function createParticle() {
-    const col = COLOURS[Math.floor(Math.random() * COLOURS.length)];
-    const r   = BASE_RADIUS_MIN + Math.random() * (BASE_RADIUS_MAX - BASE_RADIUS_MIN);
-    return {
-      x:           Math.random() * W,
-      y:           Math.random() * H,
-      baseR:       r,
-      r:           r,
-      col:         col,
-      opacity:     OPACITY_MIN + Math.random() * (OPACITY_MAX - OPACITY_MIN),
-      angleX:      Math.random() * Math.PI * 2,
-      angleY:      Math.random() * Math.PI * 2,
-      speedX:      (0.3 + Math.random() * 0.7) * DRIFT_SPEED,
-      speedY:      (0.3 + Math.random() * 0.7) * DRIFT_SPEED,
-      pulseOffset: Math.random() * Math.PI * 2,
-    };
-  }
-
   function init() {
-    particles = [];
-    const count = Math.floor(PARTICLE_COUNT * (isMobile() ? MOBILE_FACTOR : 1));
-    // Distribute evenly across a grid with random jitter
-    // so the field feels full from frame 1
+    blobs = [];
+    const count = Math.floor(BLOB_COUNT * (isMobile() ? MOBILE_FACTOR : 1));
+
+    // Grid distribution with jitter — ensures even spread from frame 1
     const cols = Math.ceil(Math.sqrt(count * (W / H)));
     const rows = Math.ceil(count / cols);
-    const cellW = W / cols;
-    const cellH = H / rows;
+    const cw   = W / cols;
+    const ch   = H / rows;
+
     for (let i = 0; i < count; i++) {
       const col = i % cols;
       const row = Math.floor(i / cols);
-      const p = createParticle();
-      // Place in grid cell + random offset within cell
-      p.x = (col + 0.1 + Math.random() * 0.8) * cellW;
-      p.y = (row + 0.1 + Math.random() * 0.8) * cellH;
-      particles.push(p);
+      const pal = PALETTE[Math.floor(Math.random() * PALETTE.length)];
+      const br  = RADIUS_MIN + Math.random() * (RADIUS_MAX - RADIUS_MIN);
+      blobs.push({
+        x:  (col + 0.15 + Math.random() * 0.7) * cw,
+        y:  (row + 0.15 + Math.random() * 0.7) * ch,
+        baseR: br,
+        r:  br,
+        col: pal,
+        opacity: OPACITY_MIN + Math.random() * (OPACITY_MAX - OPACITY_MIN),
+        ax: Math.random() * Math.PI * 2,
+        ay: Math.random() * Math.PI * 2,
+        sx: 0.0002 + Math.random() * 0.0004,
+        sy: 0.0002 + Math.random() * 0.0004,
+        po: Math.random() * Math.PI * 2,  // phase offset for breathing
+      });
     }
   }
 
-  function draw(ts) {
-    // Clear both canvases
-    offCtx.clearRect(0, 0, W, H);
+  function frame(ts) {
+    octx.clearRect(0, 0, W, H);
     ctx.clearRect(0, 0, W, H);
 
-    // Smooth parallax
-    mouseX += (targetMouseX - mouseX) * 0.04;
-    mouseY += (targetMouseY - mouseY) * 0.04;
-    const offsetX = (0.5 - mouseX) * W * PARALLAX_STRENGTH;
-    const offsetY = (0.5 - mouseY) * H * PARALLAX_STRENGTH;
+    // Smooth parallax — field shifts opposite to cursor
+    mx += (tmx - mx) * 0.03;
+    my += (tmy - my) * 0.03;
+    const ox = (0.5 - mx) * W * PARALLAX;
+    const oy = (0.5 - my) * H * PARALLAX;
 
-    // Draw all blobs to offscreen canvas (sharp)
-    particles.forEach(p => {
+    blobs.forEach(b => {
       // Breathing pulse
-      const pulse = Math.sin(ts / PULSE_PERIOD * Math.PI * 2 + p.pulseOffset);
-      p.r = p.baseR * (1 + PULSE_AMPLITUDE * pulse);
+      const pulse = Math.sin(ts / PULSE_PERIOD * Math.PI * 2 + b.po);
+      b.r = b.baseR * (1 + PULSE_AMOUNT * pulse);
 
-      // Organic drift
-      p.angleX += p.speedX;
-      p.angleY += p.speedY;
-      p.x += Math.sin(p.angleX) * 0.5;
-      p.y += Math.cos(p.angleY) * 0.5;
+      // Slow organic drift via sine-wave motion
+      b.ax += b.sx;
+      b.ay += b.sy;
+      b.x  += Math.sin(b.ax) * DRIFT;
+      b.y  += Math.cos(b.ay) * DRIFT;
 
       // Wrap edges
-      if (p.x < -p.baseR * 2) p.x = W + p.baseR;
-      if (p.x > W + p.baseR * 2) p.x = -p.baseR;
-      if (p.y < -p.baseR * 2) p.y = H + p.baseR;
-      if (p.y > H + p.baseR * 2) p.y = -p.baseR;
+      const pad = b.baseR + 10;
+      if (b.x < -pad) b.x = W + pad;
+      if (b.x > W + pad) b.x = -pad;
+      if (b.y < -pad) b.y = H + pad;
+      if (b.y > H + pad) b.y = -pad;
 
-      // Radial gradient blob for a soft glow
-      const gx = p.x + offsetX;
-      const gy = p.y + offsetY;
-      const grad = offCtx.createRadialGradient(gx, gy, 0, gx, gy, p.r);
-      grad.addColorStop(0,   `rgba(${p.col[0]},${p.col[1]},${p.col[2]},${p.opacity})`);
-      grad.addColorStop(0.5, `rgba(${p.col[0]},${p.col[1]},${p.col[2]},${p.opacity * 0.5})`);
-      grad.addColorStop(1,   `rgba(${p.col[0]},${p.col[1]},${p.col[2]},0)`);
-      offCtx.beginPath();
-      offCtx.arc(gx, gy, p.r, 0, Math.PI * 2);
-      offCtx.fillStyle = grad;
-      offCtx.fill();
+      // Radial gradient for soft glow
+      const gx = b.x + ox;
+      const gy = b.y + oy;
+      const [r, g, bv] = b.col;
+      const grad = octx.createRadialGradient(gx, gy, 0, gx, gy, b.r);
+      grad.addColorStop(0,   `rgba(${r},${g},${bv},${b.opacity})`);
+      grad.addColorStop(0.4, `rgba(${r},${g},${bv},${(b.opacity * 0.6).toFixed(3)})`);
+      grad.addColorStop(1,   `rgba(${r},${g},${bv},0)`);
+      octx.beginPath();
+      octx.arc(gx, gy, b.r, 0, Math.PI * 2);
+      octx.fillStyle = grad;
+      octx.fill();
     });
 
-    // Blit offscreen → main canvas with CSS blur
-    // This preserves opacity correctly (unlike ctx.filter on draw calls)
+    // Draw blurred blobs from offscreen canvas onto main canvas
     ctx.filter = `blur(${BLUR_PX}px)`;
-    ctx.drawImage(offscreen, 0, 0);
+    ctx.drawImage(off, 0, 0);
     ctx.filter = 'none';
 
-    raf = requestAnimationFrame(draw);
+    raf = requestAnimationFrame(frame);
   }
 
-  // Mouse / touch tracking
+  // Mouse tracking
   window.addEventListener('mousemove', e => {
-    targetMouseX = e.clientX / W;
-    targetMouseY = e.clientY / H;
+    tmx = e.clientX / W;
+    tmy = e.clientY / H;
   });
+
+  // Touch (mobile)
   window.addEventListener('touchmove', e => {
-    if (e.touches.length > 0) {
-      targetMouseX = e.touches[0].clientX / W;
-      targetMouseY = e.touches[0].clientY / H;
+    if (e.touches.length) {
+      tmx = e.touches[0].clientX / W;
+      tmy = e.touches[0].clientY / H;
     }
   }, { passive: true });
 
   window.addEventListener('resize', () => {
     cancelAnimationFrame(raf);
     resize();
-    raf = requestAnimationFrame(draw);
+    raf = requestAnimationFrame(frame);
   });
 
   resize();
-  raf = requestAnimationFrame(draw);
+  raf = requestAnimationFrame(frame);
 
 })();
 </script>
