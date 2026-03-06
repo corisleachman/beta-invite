@@ -32,7 +32,6 @@
     body {
       font-family: var(--font-body);
       background: var(--bg);
-      position: relative;
       color: var(--ink);
       -webkit-font-smoothing: antialiased;
       overflow-x: hidden;
@@ -46,14 +45,13 @@
       height: 100%;
       pointer-events: none;
       z-index: 0;
-      opacity: 1;
+      opacity: 0.85;
     }
 
     /* ─── Layout shell ─── */
     .page-wrap {
       position: relative;
       z-index: 1;
-      isolation: isolate;
     }
 
     /* ─── Nav ─── */
@@ -180,7 +178,7 @@
       transition: opacity 0.2s, transform 0.2s;
       letter-spacing: 0.01em;
     }
-    .btn-primary:hover { opacity: 1; transform: translateY(-1px); }
+    .btn-primary:hover { opacity: 0.85; transform: translateY(-1px); }
 
     .spots-label {
       font-size: 13px;
@@ -197,6 +195,15 @@
       color: var(--ink-3);
       max-width: 380px;
       line-height: 1.6;
+    }
+
+    .hero-contrast {
+      font-size: 15px;
+      color: var(--ink-2);
+      margin: 28px 0 0;
+      line-height: 1.7;
+      border-top: 1px solid var(--border);
+      padding-top: 20px;
     }
 
     /* ─── Divider ─── */
@@ -633,15 +640,15 @@
       <p>You send the first email.<br>Maybe even the second.</p>
       <p>Then work gets busy.<br>The spreadsheet gets messy.<br>Follow-ups get forgotten.</p>
       <p>Momentum disappears.</p>
-      <p>Not because people don't care.<br>Because the system isn't designed<br>to keep the rhythm going.</p>
+      <p>Not because people don't care.<br>Because the system isn't designed<br>to keep outreach moving.</p>
     </div>
 
+    <p class="hero-contrast">Not a CRM. Not a cold-email blaster.<br>Just a calm system that makes the next step obvious.</p>
+
     <div class="hero-cta-group">
-      <a href="#early-access" class="btn-primary">Join the first 100 beta users</a>
-      <p class="spots-label">
-        <strong id="hero-spots-count">100</strong> places available in the beta
-      </p>
-      <p class="hero-micro">Early access for consultants, agency founders, recruiters and operators who run their own outreach.</p>
+      <a href="#early-access" class="btn-primary">Request beta access</a>
+      <p class="hero-micro">For people who win work through conversations.</p>
+      <p class="form-note" style="margin-top:8px;">No spam. Just occasional updates as the beta develops.</p>
     </div>
   </section>
 
@@ -689,8 +696,8 @@
     </div>
     <div class="insight-card">
       <div class="card-number">03</div>
-      <div class="card-title">Never lose the rhythm</div>
-      <div class="card-body">Follow-ups appear when they're due. Conversations surface automatically. The momentum never stops.</div>
+      <div class="card-title">Never lose momentum</div>
+      <div class="card-body">Follow-ups appear when they're due. Conversations surface automatically. The next step is always obvious.</div>
     </div>
   </div>
 
@@ -703,7 +710,7 @@
     <p class="section-label">The system</p>
     <h2 class="section-headline">A calmer system for<br><em>consistent outreach.</em></h2>
     <div class="section-body">
-      <p>This tool does one thing. It keeps the rhythm of outreach alive.</p>
+      <p>This tool does one thing. It stops outreach from going quiet.</p>
       <p>No pipelines. No dashboards full of noise. No bloated CRM admin.</p>
     </div>
     <ul class="system-points">
@@ -723,7 +730,7 @@
   <div class="screenshots-section">
     <div class="screenshots-inner">
       <div class="screenshots-header reveal">
-        <p class="section-label">Built for this</p>
+        <p class="section-label">What it looks like</p>
         <h2 class="section-headline" style="margin-bottom:12px;">Simple by design.<br><em>Intentional by nature.</em></h2>
         <p style="font-size:16px;color:var(--ink-2);max-width:460px;margin:0 auto;line-height:1.7;">A dashboard designed around actions, not data. You always know what to do next.</p>
       </div>
@@ -753,25 +760,9 @@
   <div class="form-section" id="early-access">
     <div class="form-inner">
       <p class="form-eyebrow">Early access</p>
-      <h2 class="form-headline">Join the first 100 users</h2>
+      <h2 class="form-headline">Request beta access</h2>
       <p class="form-sub">The product is currently being tested with a small group of early users. People who already run outreach and want a calmer system for staying consistent.</p>
-      <div class="spots-counter-form">
-        <span id="form-spots-count">100</span> places remaining
-      </div>
 
-      <!-- ─── FORM ───
-           On submission, this posts JSON to your webhook URL.
-           TO CONNECT TO GOOGLE SHEETS VIA MAKE/ZAPIER:
-           1. Create a Make scenario with a "Webhooks > Custom webhook" trigger
-              OR create a Zapier "Webhooks by Zapier" trigger
-           2. Paste the webhook URL into WEBHOOK_URL below
-           3. Add a Google Sheets "Add Row" action in Make/Zapier
-              mapping: first_name, email, role, created_at
-           
-           TO CONNECT TO SUPABASE INSTEAD:
-           Replace the fetch() call with a Supabase client insert:
-           await supabase.from('beta_signups').insert({ first_name, email, role })
-      ─── -->
       <form class="signup-form" id="signup-form">
         <div class="form-row">
           <div class="field-wrap">
@@ -792,6 +783,17 @@
             <option value="recruiter">Recruiter</option>
             <option value="fractional_operator">Fractional operator</option>
             <option value="business_development">Business development</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="field-wrap">
+          <label for="outreach_method">How do you currently manage outreach?</label>
+          <select id="outreach_method" name="outreach_method" required>
+            <option value="" disabled selected>Select an option</option>
+            <option value="spreadsheet">Spreadsheet</option>
+            <option value="crm">CRM (HubSpot, Pipedrive, etc.)</option>
+            <option value="inbox_memory">Inbox + memory</option>
+            <option value="nothing">Nothing consistent yet</option>
             <option value="other">Other</option>
           </select>
         </div>
@@ -848,7 +850,7 @@
 // ─────────────────────────────────────────────────────────
 // CONFIGURATION
 // ─────────────────────────────────────────────────────────
-const WEBHOOK_URL = "https://hook.eu1.make.com/eapza1auhc7ii5m2vcnljn98nbaie1bb";
+const WEBHOOK_URL = "YOUR_WEBHOOK_URL_HERE";
 // ^ Paste your Make or Zapier webhook URL here.
 // Make: Webhooks > Custom webhook > Copy URL
 // Zapier: Webhooks by Zapier > Catch Hook > Copy URL
@@ -913,6 +915,7 @@ document.getElementById("signup-form").addEventListener("submit", async (e) => {
     first_name: document.getElementById("first_name").value.trim(),
     email:      document.getElementById("email").value.trim(),
     role:       document.getElementById("role").value,
+    outreach_method: document.getElementById("outreach_method").value,
     created_at: new Date().toISOString(),
     source_url: window.location.href
   };
@@ -942,11 +945,6 @@ document.getElementById("signup-form").addEventListener("submit", async (e) => {
   }
 
   if (success) {
-    // Update local counter
-    const current = parseInt(localStorage.getItem("beta_signups") || "0");
-    localStorage.setItem("beta_signups", current + 1);
-    updateSpotsDisplay(getSpotsRemaining());
-
     // Show success state
     document.getElementById("signup-form").style.display = "none";
     document.getElementById("success-state").style.display = "block";
@@ -958,169 +956,146 @@ document.getElementById("signup-form").addEventListener("submit", async (e) => {
 
 
 // ─────────────────────────────────────────────────────────
-// HEARTBEAT PULSE ANIMATION
-//
-// Each blob fires with a sharp quick rise → fast decay →
-// soft echo → long rest. Like a real pulse, not a sine wave.
-// Blobs stagger slightly so the pulse ripples across the field.
-//
-// TUNING PARAMETERS below — clearly marked
+// WEBGL PARTICLE ANIMATION
+// Organic, breathing particle field. Indirect mouse parallax.
+// Tuning variables are at the top of this block.
 // ─────────────────────────────────────────────────────────
-(function () {
+(function() {
 
-  const canvas = document.getElementById('pulse-canvas');
-  const ctx    = canvas.getContext('2d');
+  const canvas = document.getElementById("pulse-canvas");
+  const ctx    = canvas.getContext("2d");
 
-  // ── TUNE ──────────────────────────────────────────────
-  const BLOB_COUNT     = 12;    // number of blobs
-  const RADIUS_MIN     = 120;   // blob base radius min (px)
-  const RADIUS_MAX     = 300;   // blob base radius max (px)
-  const CYCLE_MS       = 5000;  // ms between heartbeats
-  const PULSE_SWELL    = 0.45;  // how much radius expands on beat (0=none)
-  const OPACITY_BASE   = 0.22;  // resting opacity per blob
-  const OPACITY_FLARE  = 0.35;  // extra opacity added at peak of beat
-  const DRIFT          = 0.6;   // px per frame organic drift
-  const BLUR_PX        = 35;    // gaussian blur (px)
-  const STAGGER        = 0.18;  // phase stagger across blobs (0=all fire together)
-  const PARALLAX       = 0.04;  // mouse parallax strength
-  const MOBILE_FACTOR  = 0.6;   // blob count reduction on mobile
+  // ── Tuning parameters ──────────────────────────────────
+  const PARTICLE_COUNT     = 55;     // fewer = calmer
+  const PULSE_PERIOD       = 6000;   // ms for one breathe cycle
+  const BASE_RADIUS_MIN    = 3;      // particle min radius
+  const BASE_RADIUS_MAX    = 22;     // particle max radius
+  const PULSE_AMPLITUDE    = 0.38;   // how much radius swells (0–1)
+  const DRIFT_SPEED        = 0.00012;// base movement speed
+  const OPACITY_MIN        = 0.04;
+  const OPACITY_MAX        = 0.18;
+  const PARALLAX_STRENGTH  = 0.022;  // mouse influence (0 = none)
+  const BLUR_AMOUNT        = 28;     // px — canvas filter blur
+  const MOBILE_REDUCTION   = 0.5;    // particle count multiplier on mobile
 
-  // Soft teal / sage palette — [R, G, B]
-  const PALETTE = [
-    [80,  160, 140],
-    [100, 180, 160],
-    [60,  140, 120],
-    [120, 190, 170],
-    [90,  155, 135],
-    [70,  150, 130],
+  // Colour palette — soft teal / sage tones
+  const COLOURS = [
+    "107, 158, 142",   // accent teal
+    "168, 201, 190",   // light sage
+    "130, 180, 165",   // mid teal
+    "90,  140, 120",   // deeper sage
+    "200, 220, 215",   // near-white teal
   ];
   // ──────────────────────────────────────────────────────
 
-  // Heartbeat curve: sharp Gaussian rise + softer echo, then silence
-  // t = 0..1 position within one cycle. Returns intensity 0..1.
-  function heartbeatCurve(t) {
-    // Primary beat — very sharp, peaks at t≈0.04
-    const b1 = Math.exp(-((t - 0.04) ** 2) / 0.0012);
-    // Diastolic echo — softer, slightly later
-    const b2 = 0.50 * Math.exp(-((t - 0.13) ** 2) / 0.0020);
-    return Math.min(1, Math.max(0, b1 + b2));
-  }
-
-  let W, H, blobs = [];
-  let mx = 0.5, my = 0.5, tmx = 0.5, tmy = 0.5;
-  let off, octx, raf;
+  let W, H, particles = [];
+  let mouseX = 0.5, mouseY = 0.5;  // normalised 0–1
+  let targetMouseX = 0.5, targetMouseY = 0.5;
+  let raf;
 
   function isMobile() { return window.innerWidth < 768; }
 
   function resize() {
     W = canvas.width  = window.innerWidth;
     H = canvas.height = window.innerHeight;
-    off = document.createElement('canvas');
-    off.width = W; off.height = H;
-    octx = off.getContext('2d');
+    // Re-init on resize
     init();
   }
 
   function init() {
-    blobs = [];
-    const count = Math.floor(BLOB_COUNT * (isMobile() ? MOBILE_FACTOR : 1));
-    // Grid distribution with jitter — full coverage from frame 1
-    const cols = Math.ceil(Math.sqrt(count * W / H));
-    const rows = Math.ceil(count / cols);
-    const cw = W / cols, ch = H / rows;
-
+    particles = [];
+    const count = Math.floor(PARTICLE_COUNT * (isMobile() ? MOBILE_REDUCTION : 1));
     for (let i = 0; i < count; i++) {
-      const col = i % cols, row = Math.floor(i / cols);
-      const pal = PALETTE[Math.floor(Math.random() * PALETTE.length)];
-      const br  = RADIUS_MIN + Math.random() * (RADIUS_MAX - RADIUS_MIN);
-      blobs.push({
-        x:    (col + 0.15 + Math.random() * 0.7) * cw,
-        y:    (row + 0.15 + Math.random() * 0.7) * ch,
-        baseR: br, r: br,
-        col:  pal,
-        baseOpacity: OPACITY_BASE + Math.random() * 0.08,
-        ax: Math.random() * Math.PI * 2,
-        ay: Math.random() * Math.PI * 2,
-        sx: 0.0002 + Math.random() * 0.0003,
-        sy: 0.0002 + Math.random() * 0.0003,
-        // Stagger: each blob fires slightly after the previous
-        // creating a ripple rather than a single flash
-        phaseOffset: (i / count) * STAGGER,
-      });
+      particles.push(createParticle());
     }
   }
 
-  function frame(ts) {
-    octx.clearRect(0, 0, W, H);
-    ctx.clearRect(0, 0, W, H);
-
-    // Smooth indirect mouse parallax
-    mx += (tmx - mx) * 0.03;
-    my += (tmy - my) * 0.03;
-    const ox = (0.5 - mx) * W * PARALLAX;
-    const oy = (0.5 - my) * H * PARALLAX;
-
-    blobs.forEach(b => {
-      // Slow organic drift
-      b.ax += b.sx; b.ay += b.sy;
-      b.x  += Math.sin(b.ax) * DRIFT;
-      b.y  += Math.cos(b.ay) * DRIFT;
-      const pad = b.baseR + 10;
-      if (b.x < -pad) b.x = W + pad;
-      if (b.x > W + pad) b.x = -pad;
-      if (b.y < -pad) b.y = H + pad;
-      if (b.y > H + pad) b.y = -pad;
-
-      // Heartbeat phase — staggered per blob
-      const cycleT = ((ts / CYCLE_MS) + b.phaseOffset) % 1;
-      const hb = heartbeatCurve(cycleT);  // 0..1 beat intensity
-
-      // Sharp radius swell + opacity flare on beat
-      b.r = b.baseR * (1 + PULSE_SWELL * hb);
-      const opacity = b.baseOpacity + OPACITY_FLARE * hb;
-
-      // Radial gradient blob
-      const gx = b.x + ox, gy = b.y + oy;
-      const [r, g, bv] = b.col;
-      const grad = octx.createRadialGradient(gx, gy, 0, gx, gy, b.r);
-      grad.addColorStop(0,   `rgba(${r},${g},${bv},${opacity.toFixed(3)})`);
-      grad.addColorStop(0.4, `rgba(${r},${g},${bv},${(opacity * 0.55).toFixed(3)})`);
-      grad.addColorStop(1,   `rgba(${r},${g},${bv},0)`);
-      octx.beginPath();
-      octx.arc(gx, gy, b.r, 0, Math.PI * 2);
-      octx.fillStyle = grad;
-      octx.fill();
-    });
-
-    // Blit offscreen → main with gaussian blur
-    ctx.filter = `blur(${BLUR_PX}px)`;
-    ctx.drawImage(off, 0, 0);
-    ctx.filter = 'none';
-
-    raf = requestAnimationFrame(frame);
+  function createParticle(xOverride) {
+    const r = BASE_RADIUS_MIN + Math.random() * (BASE_RADIUS_MAX - BASE_RADIUS_MIN);
+    return {
+      x:         (xOverride !== undefined ? xOverride : Math.random()) * W,
+      y:         Math.random() * H,
+      baseR:     r,
+      r:         r,
+      colour:    COLOURS[Math.floor(Math.random() * COLOURS.length)],
+      opacity:   OPACITY_MIN + Math.random() * (OPACITY_MAX - OPACITY_MIN),
+      // Sine-wave drift
+      angleX:    Math.random() * Math.PI * 2,
+      angleY:    Math.random() * Math.PI * 2,
+      speedX:    (0.3 + Math.random() * 0.7) * DRIFT_SPEED,
+      speedY:    (0.3 + Math.random() * 0.7) * DRIFT_SPEED,
+      // Phase offset so each particle breathes out of sync
+      pulseOffset: Math.random() * Math.PI * 2,
+    };
   }
 
-  // Mouse / touch tracking
-  window.addEventListener('mousemove', e => {
-    tmx = e.clientX / W; tmy = e.clientY / H;
+  function draw(ts) {
+    ctx.clearRect(0, 0, W, H);
+
+    // Soft blur on entire canvas draw
+    ctx.filter = `blur(${BLUR_AMOUNT}px)`;
+
+    // Smooth mouse tracking (lazy follow)
+    mouseX += (targetMouseX - mouseX) * 0.04;
+    mouseY += (targetMouseY - mouseY) * 0.04;
+
+    // Parallax offset (inverted — field moves opposite to cursor)
+    const offsetX = (0.5 - mouseX) * W * PARALLAX_STRENGTH;
+    const offsetY = (0.5 - mouseY) * H * PARALLAX_STRENGTH;
+
+    particles.forEach(p => {
+      // Breathing pulse
+      const pulse = Math.sin(ts / PULSE_PERIOD * Math.PI * 2 + p.pulseOffset);
+      p.r = p.baseR * (1 + PULSE_AMPLITUDE * pulse);
+
+      // Slow organic drift using sine waves
+      p.angleX += p.speedX;
+      p.angleY += p.speedY;
+      p.x += Math.sin(p.angleX) * 0.4;
+      p.y += Math.cos(p.angleY) * 0.4;
+
+      // Wrap edges
+      if (p.x < -p.baseR * 2) p.x = W + p.baseR;
+      if (p.x > W + p.baseR * 2) p.x = -p.baseR;
+      if (p.y < -p.baseR * 2) p.y = H + p.baseR;
+      if (p.y > H + p.baseR * 2) p.y = -p.baseR;
+
+      // Draw
+      ctx.beginPath();
+      ctx.arc(p.x + offsetX, p.y + offsetY, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${p.colour}, ${p.opacity})`;
+      ctx.fill();
+    });
+
+    ctx.filter = "none";
+    raf = requestAnimationFrame(draw);
+  }
+
+  // ── Mouse tracking ──
+  window.addEventListener("mousemove", (e) => {
+    targetMouseX = e.clientX / W;
+    targetMouseY = e.clientY / H;
   });
-  window.addEventListener('touchmove', e => {
-    if (e.touches.length) {
-      tmx = e.touches[0].clientX / W;
-      tmy = e.touches[0].clientY / H;
+
+  // ── Touch tracking (mobile) ──
+  window.addEventListener("touchmove", (e) => {
+    if (e.touches.length > 0) {
+      targetMouseX = e.touches[0].clientX / W;
+      targetMouseY = e.touches[0].clientY / H;
     }
   }, { passive: true });
 
-  window.addEventListener('resize', () => {
+  window.addEventListener("resize", () => {
     cancelAnimationFrame(raf);
     resize();
-    raf = requestAnimationFrame(frame);
+    raf = requestAnimationFrame(draw);
   });
 
   resize();
-  raf = requestAnimationFrame(frame);
+  raf = requestAnimationFrame(draw);
 
 })();
 </script>
 
 </body>
+</html>
