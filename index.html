@@ -968,16 +968,16 @@ document.getElementById("signup-form").addEventListener("submit", async (e) => {
   const ctx    = canvas.getContext('2d');
 
   // ── TUNE: Core parameters ─────────────────────────────
-  const PARTICLE_COUNT    = 38;      // number of blobs
+  const PARTICLE_COUNT    = 45;      // number of blobs
   const PULSE_PERIOD      = 6500;    // ms per breath cycle
-  const BASE_RADIUS_MIN   = 60;      // min blob radius (px)
-  const BASE_RADIUS_MAX   = 160;     // max blob radius (px)
+  const BASE_RADIUS_MIN   = 80;      // min blob radius (px)
+  const BASE_RADIUS_MAX   = 220;     // max blob radius (px)
   const PULSE_AMPLITUDE   = 0.25;    // breath swell amount (0-1)
   const DRIFT_SPEED       = 0.00018; // how fast blobs wander
-  const OPACITY_MIN       = 0.06;    // min blob opacity
-  const OPACITY_MAX       = 0.22;    // max blob opacity
+  const OPACITY_MIN       = 0.12;    // min blob opacity
+  const OPACITY_MAX       = 0.32;    // max blob opacity
   const PARALLAX_STRENGTH = 0.025;   // mouse field shift (0=none)
-  const BLUR_PX           = 50;      // gaussian blur in px
+  const BLUR_PX           = 45;      // gaussian blur in px
   const MOBILE_FACTOR     = 0.55;    // particle reduction on mobile
   // ──────────────────────────────────────────────────────
 
@@ -1034,7 +1034,21 @@ document.getElementById("signup-form").addEventListener("submit", async (e) => {
   function init() {
     particles = [];
     const count = Math.floor(PARTICLE_COUNT * (isMobile() ? MOBILE_FACTOR : 1));
-    for (let i = 0; i < count; i++) particles.push(createParticle());
+    // Distribute evenly across a grid with random jitter
+    // so the field feels full from frame 1
+    const cols = Math.ceil(Math.sqrt(count * (W / H)));
+    const rows = Math.ceil(count / cols);
+    const cellW = W / cols;
+    const cellH = H / rows;
+    for (let i = 0; i < count; i++) {
+      const col = i % cols;
+      const row = Math.floor(i / cols);
+      const p = createParticle();
+      // Place in grid cell + random offset within cell
+      p.x = (col + 0.1 + Math.random() * 0.8) * cellW;
+      p.y = (row + 0.1 + Math.random() * 0.8) * cellH;
+      particles.push(p);
+    }
   }
 
   function draw(ts) {
