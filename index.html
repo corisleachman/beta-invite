@@ -956,103 +956,109 @@ document.getElementById("signup-form").addEventListener("submit", async (e) => {
 
 
 // ─────────────────────────────────────────────────────────
-// WEBGL PARTICLE ANIMATION
-// Organic, breathing particle field. Indirect mouse parallax.
-// Tuning variables are at the top of this block.
+// PARTICLE ANIMATION — fixed blur approach
+// Uses an offscreen canvas for gaussian blur so particle
+// opacity is preserved correctly.
+//
+// TUNING PARAMETERS are marked with // TUNE below
 // ─────────────────────────────────────────────────────────
 (function() {
 
-  const canvas = document.getElementById("pulse-canvas");
-  const ctx    = canvas.getContext("2d");
+  const canvas = document.getElementById('pulse-canvas');
+  const ctx    = canvas.getContext('2d');
 
-  // ── Tuning parameters ──────────────────────────────────
-  const PARTICLE_COUNT     = 55;     // fewer = calmer
-  const PULSE_PERIOD       = 6000;   // ms for one breathe cycle
-  const BASE_RADIUS_MIN    = 3;      // particle min radius
-  const BASE_RADIUS_MAX    = 22;     // particle max radius
-  const PULSE_AMPLITUDE    = 0.38;   // how much radius swells (0–1)
-  const DRIFT_SPEED        = 0.00012;// base movement speed
-  const OPACITY_MIN        = 0.04;
-  const OPACITY_MAX        = 0.18;
-  const PARALLAX_STRENGTH  = 0.022;  // mouse influence (0 = none)
-  const BLUR_AMOUNT        = 28;     // px — canvas filter blur
-  const MOBILE_REDUCTION   = 0.5;    // particle count multiplier on mobile
-
-  // Colour palette — soft teal / sage tones
-  const COLOURS = [
-    "107, 158, 142",   // accent teal
-    "168, 201, 190",   // light sage
-    "130, 180, 165",   // mid teal
-    "90,  140, 120",   // deeper sage
-    "200, 220, 215",   // near-white teal
-  ];
+  // ── TUNE: Core parameters ─────────────────────────────
+  const PARTICLE_COUNT    = 38;      // number of blobs
+  const PULSE_PERIOD      = 6500;    // ms per breath cycle
+  const BASE_RADIUS_MIN   = 60;      // min blob radius (px)
+  const BASE_RADIUS_MAX   = 160;     // max blob radius (px)
+  const PULSE_AMPLITUDE   = 0.25;    // breath swell amount (0-1)
+  const DRIFT_SPEED       = 0.00018; // how fast blobs wander
+  const OPACITY_MIN       = 0.06;    // min blob opacity
+  const OPACITY_MAX       = 0.22;    // max blob opacity
+  const PARALLAX_STRENGTH = 0.025;   // mouse field shift (0=none)
+  const BLUR_PX           = 50;      // gaussian blur in px
+  const MOBILE_FACTOR     = 0.55;    // particle reduction on mobile
   // ──────────────────────────────────────────────────────
 
-  let W, H, particles = [];
-  let mouseX = 0.5, mouseY = 0.5;  // normalised 0–1
+  // Soft teal/sage palette — RGB strings
+  const COLOURS = [
+    [107, 158, 142],   // accent teal
+    [130, 185, 168],   // mid teal
+    [168, 210, 198],   // light sage
+    [90,  145, 125],   // deep sage
+    [155, 200, 188],   // soft seafoam
+    [120, 170, 155],   // muted jade
+  ];
+
+  let W, H;
+  let particles = [];
+  let mouseX = 0.5, mouseY = 0.5;
   let targetMouseX = 0.5, targetMouseY = 0.5;
   let raf;
+
+  // Offscreen canvas — we draw particles here then
+  // apply CSS filter blur on the main canvas image
+  let offscreen, offCtx;
 
   function isMobile() { return window.innerWidth < 768; }
 
   function resize() {
     W = canvas.width  = window.innerWidth;
     H = canvas.height = window.innerHeight;
-    // Re-init on resize
+    offscreen        = document.createElement('canvas');
+    offscreen.width  = W;
+    offscreen.height = H;
+    offCtx = offscreen.getContext('2d');
     init();
   }
 
-  function init() {
-    particles = [];
-    const count = Math.floor(PARTICLE_COUNT * (isMobile() ? MOBILE_REDUCTION : 1));
-    for (let i = 0; i < count; i++) {
-      particles.push(createParticle());
-    }
-  }
-
-  function createParticle(xOverride) {
-    const r = BASE_RADIUS_MIN + Math.random() * (BASE_RADIUS_MAX - BASE_RADIUS_MIN);
+  function createParticle() {
+    const col = COLOURS[Math.floor(Math.random() * COLOURS.length)];
+    const r   = BASE_RADIUS_MIN + Math.random() * (BASE_RADIUS_MAX - BASE_RADIUS_MIN);
     return {
-      x:         (xOverride !== undefined ? xOverride : Math.random()) * W,
-      y:         Math.random() * H,
-      baseR:     r,
-      r:         r,
-      colour:    COLOURS[Math.floor(Math.random() * COLOURS.length)],
-      opacity:   OPACITY_MIN + Math.random() * (OPACITY_MAX - OPACITY_MIN),
-      // Sine-wave drift
-      angleX:    Math.random() * Math.PI * 2,
-      angleY:    Math.random() * Math.PI * 2,
-      speedX:    (0.3 + Math.random() * 0.7) * DRIFT_SPEED,
-      speedY:    (0.3 + Math.random() * 0.7) * DRIFT_SPEED,
-      // Phase offset so each particle breathes out of sync
+      x:           Math.random() * W,
+      y:           Math.random() * H,
+      baseR:       r,
+      r:           r,
+      col:         col,
+      opacity:     OPACITY_MIN + Math.random() * (OPACITY_MAX - OPACITY_MIN),
+      angleX:      Math.random() * Math.PI * 2,
+      angleY:      Math.random() * Math.PI * 2,
+      speedX:      (0.3 + Math.random() * 0.7) * DRIFT_SPEED,
+      speedY:      (0.3 + Math.random() * 0.7) * DRIFT_SPEED,
       pulseOffset: Math.random() * Math.PI * 2,
     };
   }
 
+  function init() {
+    particles = [];
+    const count = Math.floor(PARTICLE_COUNT * (isMobile() ? MOBILE_FACTOR : 1));
+    for (let i = 0; i < count; i++) particles.push(createParticle());
+  }
+
   function draw(ts) {
+    // Clear both canvases
+    offCtx.clearRect(0, 0, W, H);
     ctx.clearRect(0, 0, W, H);
 
-    // Soft blur on entire canvas draw
-    ctx.filter = `blur(${BLUR_AMOUNT}px)`;
-
-    // Smooth mouse tracking (lazy follow)
+    // Smooth parallax
     mouseX += (targetMouseX - mouseX) * 0.04;
     mouseY += (targetMouseY - mouseY) * 0.04;
-
-    // Parallax offset (inverted — field moves opposite to cursor)
     const offsetX = (0.5 - mouseX) * W * PARALLAX_STRENGTH;
     const offsetY = (0.5 - mouseY) * H * PARALLAX_STRENGTH;
 
+    // Draw all blobs to offscreen canvas (sharp)
     particles.forEach(p => {
       // Breathing pulse
       const pulse = Math.sin(ts / PULSE_PERIOD * Math.PI * 2 + p.pulseOffset);
       p.r = p.baseR * (1 + PULSE_AMPLITUDE * pulse);
 
-      // Slow organic drift using sine waves
+      // Organic drift
       p.angleX += p.speedX;
       p.angleY += p.speedY;
-      p.x += Math.sin(p.angleX) * 0.4;
-      p.y += Math.cos(p.angleY) * 0.4;
+      p.x += Math.sin(p.angleX) * 0.5;
+      p.y += Math.cos(p.angleY) * 0.5;
 
       // Wrap edges
       if (p.x < -p.baseR * 2) p.x = W + p.baseR;
@@ -1060,32 +1066,41 @@ document.getElementById("signup-form").addEventListener("submit", async (e) => {
       if (p.y < -p.baseR * 2) p.y = H + p.baseR;
       if (p.y > H + p.baseR * 2) p.y = -p.baseR;
 
-      // Draw
-      ctx.beginPath();
-      ctx.arc(p.x + offsetX, p.y + offsetY, p.r, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(${p.colour}, ${p.opacity})`;
-      ctx.fill();
+      // Radial gradient blob for a soft glow
+      const gx = p.x + offsetX;
+      const gy = p.y + offsetY;
+      const grad = offCtx.createRadialGradient(gx, gy, 0, gx, gy, p.r);
+      grad.addColorStop(0,   `rgba(${p.col[0]},${p.col[1]},${p.col[2]},${p.opacity})`);
+      grad.addColorStop(0.5, `rgba(${p.col[0]},${p.col[1]},${p.col[2]},${p.opacity * 0.5})`);
+      grad.addColorStop(1,   `rgba(${p.col[0]},${p.col[1]},${p.col[2]},0)`);
+      offCtx.beginPath();
+      offCtx.arc(gx, gy, p.r, 0, Math.PI * 2);
+      offCtx.fillStyle = grad;
+      offCtx.fill();
     });
 
-    ctx.filter = "none";
+    // Blit offscreen → main canvas with CSS blur
+    // This preserves opacity correctly (unlike ctx.filter on draw calls)
+    ctx.filter = `blur(${BLUR_PX}px)`;
+    ctx.drawImage(offscreen, 0, 0);
+    ctx.filter = 'none';
+
     raf = requestAnimationFrame(draw);
   }
 
-  // ── Mouse tracking ──
-  window.addEventListener("mousemove", (e) => {
+  // Mouse / touch tracking
+  window.addEventListener('mousemove', e => {
     targetMouseX = e.clientX / W;
     targetMouseY = e.clientY / H;
   });
-
-  // ── Touch tracking (mobile) ──
-  window.addEventListener("touchmove", (e) => {
+  window.addEventListener('touchmove', e => {
     if (e.touches.length > 0) {
       targetMouseX = e.touches[0].clientX / W;
       targetMouseY = e.touches[0].clientY / H;
     }
   }, { passive: true });
 
-  window.addEventListener("resize", () => {
+  window.addEventListener('resize', () => {
     cancelAnimationFrame(raf);
     resize();
     raf = requestAnimationFrame(draw);
@@ -1098,4 +1113,3 @@ document.getElementById("signup-form").addEventListener("submit", async (e) => {
 </script>
 
 </body>
-</html>
