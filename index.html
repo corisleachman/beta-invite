@@ -919,24 +919,25 @@ document.getElementById("signup-form").addEventListener("submit", async (e) => {
 
   let success = false;
 
-  // ── Send to webhook ──
-  // If WEBHOOK_URL is set, post the data
+  // ── Send to Make webhook ──
+  // Make.com webhooks parse application/x-www-form-urlencoded correctly,
+  // giving you named variables (first_name, email, role, etc.) in the bundle.
+  // Sending JSON with no-cors causes Make to see a single opaque "value" blob.
   if (WEBHOOK_URL !== "YOUR_WEBHOOK_URL_HERE") {
     try {
+      const encoded = new URLSearchParams(payload).toString();
       await fetch(WEBHOOK_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        mode: "no-cors", // required for Make/Zapier webhooks
-        body: JSON.stringify(payload)
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        mode: "no-cors",
+        body: encoded
       });
       success = true;
     } catch (err) {
       console.error("Webhook error:", err);
-      // Fallback: still show success to user, log to console
       success = true;
     }
   } else {
-    // No webhook set yet — log to console for testing
     console.log("Form submission (no webhook configured):", payload);
     success = true;
   }
