@@ -118,12 +118,12 @@
 
     .hero-headline {
       font-family: var(--font-display);
-      font-size: clamp(44px, 7vw, 80px);
-      line-height: 1.1;
+      font-size: clamp(32px, 5vw, 56px);
+      line-height: 1.15;
       letter-spacing: -0.02em;
       color: var(--ink);
-      max-width: 700px;
-      margin-bottom: 28px;
+      max-width: 600px;
+      margin-bottom: 8px;
       opacity: 0;
       animation: fadeUp 0.8s 0.35s ease forwards;
     }
@@ -204,6 +204,27 @@
       line-height: 1.7;
       border-top: 1px solid var(--border);
       padding-top: 20px;
+    }
+
+    .hero-audience {
+      font-size: 15px;
+      color: var(--accent);
+      margin: 6px 0 28px;
+      font-weight: 500;
+      letter-spacing: 0.01em;
+    }
+
+    .hero-statement {
+      font-size: clamp(22px, 4vw, 34px);
+      font-family: 'Instrument Serif', serif;
+      line-height: 1.25;
+      margin: 0 0 20px;
+      color: var(--ink);
+    }
+
+    .hero-statement em {
+      font-style: italic;
+      color: var(--accent);
     }
 
     /* ─── Divider ─── */
@@ -627,28 +648,23 @@
   <section class="hero">
     <div class="eyebrow">Invite-only beta</div>
 
-    <h1 class="hero-headline">
-      Outreach works.<br>
-      <em>Consistency breaks.</em>
-    </h1>
+    <h1 class="hero-headline">A calmer way to run outreach</h1>
 
-    <p class="hero-sub">
-      Consistency is the challenge, not the task.
-    </p>
+    <p class="hero-audience">For people who win work through conversations.</p>
 
-    <div class="hero-body">
-      <p>You send the first email.<br>Maybe even the second.</p>
-      <p>Then work gets busy.<br>The spreadsheet gets messy.<br>Follow-ups get forgotten.</p>
-      <p>Momentum disappears.</p>
-      <p>Not because people don't care.<br>Because the system isn't designed<br>to keep outreach moving.</p>
+    <div class="hero-statement">
+      <p>Outreach works.<br><em>Consistency breaks.</em></p>
     </div>
 
-    <p class="hero-contrast">Not a CRM. Not a cold-email blaster.<br>Just a calm system that makes the next step obvious.</p>
+    <div class="hero-body">
+      <p>Most outreach doesn't fail because the message is bad.<br>It fails because follow-ups stop happening.</p>
+    </div>
+
+    <p class="hero-contrast">Not a CRM.<br>Not a cold-email blaster.<br>Just a calm system that keeps outreach moving.</p>
 
     <div class="hero-cta-group">
-      <a href="#early-access" class="btn-primary">Request beta access</a>
-      <p class="hero-micro">For people who win work through conversations.</p>
-      <p class="form-note" style="margin-top:8px;">No spam. Just occasional updates as the beta develops.</p>
+      <a href="#early-access" class="btn-primary">Join the first 100 beta users</a>
+      <p class="form-note" style="margin-top:12px;">No spam. Just occasional updates as the beta develops.</p>
     </div>
   </section>
 
@@ -850,7 +866,7 @@
 // ─────────────────────────────────────────────────────────
 // CONFIGURATION
 // ─────────────────────────────────────────────────────────
-const WEBHOOK_URL = "YOUR_WEBHOOK_URL_HERE";
+const WEBHOOK_URL = "https://hook.eu1.make.com/eapza1auhc7ii5m2vcnljn98nbaie1bb";
 // ^ Paste your Make or Zapier webhook URL here.
 // Make: Webhooks > Custom webhook > Copy URL
 // Zapier: Webhooks by Zapier > Catch Hook > Copy URL
@@ -922,15 +938,18 @@ document.getElementById("signup-form").addEventListener("submit", async (e) => {
 
   let success = false;
 
-  // ── Send to webhook ──
-  // If WEBHOOK_URL is set, post the data
+  // ── Send to Make webhook ──
+  // Make.com webhooks parse application/x-www-form-urlencoded correctly,
+  // giving you named variables (first_name, email, role, etc.) in the bundle.
+  // Sending JSON with no-cors causes Make to see a single opaque blob.
   if (WEBHOOK_URL !== "YOUR_WEBHOOK_URL_HERE") {
     try {
+      const encoded = new URLSearchParams(payload).toString();
       await fetch(WEBHOOK_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        mode: "no-cors", // required for Make/Zapier webhooks
-        body: JSON.stringify(payload)
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        mode: "no-cors",
+        body: encoded
       });
       success = true;
     } catch (err) {
@@ -956,143 +975,167 @@ document.getElementById("signup-form").addEventListener("submit", async (e) => {
 
 
 // ─────────────────────────────────────────────────────────
-// WEBGL PARTICLE ANIMATION
-// Organic, breathing particle field. Indirect mouse parallax.
-// Tuning variables are at the top of this block.
+// HEARTBEAT PULSE ANIMATION
+//
+// Each blob fires with a sharp quick rise → fast decay →
+// soft echo → long rest. Like a real pulse, not a sine wave.
+// Blobs stagger slightly so the pulse ripples across the field.
+//
+// TUNING PARAMETERS below — clearly marked
 // ─────────────────────────────────────────────────────────
-(function() {
+(function () {
 
-  const canvas = document.getElementById("pulse-canvas");
-  const ctx    = canvas.getContext("2d");
+  const canvas = document.getElementById('pulse-canvas');
+  const ctx    = canvas.getContext('2d');
 
-  // ── Tuning parameters ──────────────────────────────────
-  const PARTICLE_COUNT     = 55;     // fewer = calmer
-  const PULSE_PERIOD       = 6000;   // ms for one breathe cycle
-  const BASE_RADIUS_MIN    = 3;      // particle min radius
-  const BASE_RADIUS_MAX    = 22;     // particle max radius
-  const PULSE_AMPLITUDE    = 0.38;   // how much radius swells (0–1)
-  const DRIFT_SPEED        = 0.00012;// base movement speed
-  const OPACITY_MIN        = 0.04;
-  const OPACITY_MAX        = 0.18;
-  const PARALLAX_STRENGTH  = 0.022;  // mouse influence (0 = none)
-  const BLUR_AMOUNT        = 28;     // px — canvas filter blur
-  const MOBILE_REDUCTION   = 0.5;    // particle count multiplier on mobile
+  // ── TUNE ──────────────────────────────────────────────
+  const BLOB_COUNT     = 12;    // number of blobs
+  const RADIUS_MIN     = 120;   // blob base radius min (px)
+  const RADIUS_MAX     = 300;   // blob base radius max (px)
+  const CYCLE_MS       = 5000;  // ms between heartbeats
+  const PULSE_SWELL    = 0.45;  // how much radius expands on beat (0=none)
+  const OPACITY_BASE   = 0.22;  // resting opacity per blob
+  const OPACITY_FLARE  = 0.35;  // extra opacity added at peak of beat
+  const DRIFT          = 0.6;   // px per frame organic drift
+  const BLUR_PX        = 35;    // gaussian blur (px)
+  const STAGGER        = 0.18;  // phase stagger across blobs (0=all fire together)
+  const PARALLAX       = 0.04;  // mouse parallax strength
+  const MOBILE_FACTOR  = 0.6;   // blob count reduction on mobile
 
-  // Colour palette — soft teal / sage tones
-  const COLOURS = [
-    "107, 158, 142",   // accent teal
-    "168, 201, 190",   // light sage
-    "130, 180, 165",   // mid teal
-    "90,  140, 120",   // deeper sage
-    "200, 220, 215",   // near-white teal
+  // Soft teal / sage palette — [R, G, B]
+  const PALETTE = [
+    [80,  160, 140],
+    [100, 180, 160],
+    [60,  140, 120],
+    [120, 190, 170],
+    [90,  155, 135],
+    [70,  150, 130],
   ];
   // ──────────────────────────────────────────────────────
 
-  let W, H, particles = [];
-  let mouseX = 0.5, mouseY = 0.5;  // normalised 0–1
-  let targetMouseX = 0.5, targetMouseY = 0.5;
-  let raf;
+  // Heartbeat curve: sharp Gaussian rise + softer echo, then silence
+  // t = 0..1 position within one cycle. Returns intensity 0..1.
+  function heartbeatCurve(t) {
+    // Primary beat — very sharp, peaks at t≈0.04
+    const b1 = Math.exp(-((t - 0.04) ** 2) / 0.0012);
+    // Diastolic echo — softer, slightly later
+    const b2 = 0.50 * Math.exp(-((t - 0.13) ** 2) / 0.0020);
+    return Math.min(1, Math.max(0, b1 + b2));
+  }
+
+  let W, H, blobs = [];
+  let mx = 0.5, my = 0.5, tmx = 0.5, tmy = 0.5;
+  let off, octx, raf;
 
   function isMobile() { return window.innerWidth < 768; }
 
   function resize() {
     W = canvas.width  = window.innerWidth;
     H = canvas.height = window.innerHeight;
-    // Re-init on resize
+    off = document.createElement('canvas');
+    off.width = W; off.height = H;
+    octx = off.getContext('2d');
     init();
   }
 
   function init() {
-    particles = [];
-    const count = Math.floor(PARTICLE_COUNT * (isMobile() ? MOBILE_REDUCTION : 1));
+    blobs = [];
+    const count = Math.floor(BLOB_COUNT * (isMobile() ? MOBILE_FACTOR : 1));
+    // Grid distribution with jitter — full coverage from frame 1
+    const cols = Math.ceil(Math.sqrt(count * W / H));
+    const rows = Math.ceil(count / cols);
+    const cw = W / cols, ch = H / rows;
+
     for (let i = 0; i < count; i++) {
-      particles.push(createParticle());
+      const col = i % cols, row = Math.floor(i / cols);
+      const pal = PALETTE[Math.floor(Math.random() * PALETTE.length)];
+      const br  = RADIUS_MIN + Math.random() * (RADIUS_MAX - RADIUS_MIN);
+      blobs.push({
+        x:    (col + 0.15 + Math.random() * 0.7) * cw,
+        y:    (row + 0.15 + Math.random() * 0.7) * ch,
+        baseR: br, r: br,
+        col:  pal,
+        baseOpacity: OPACITY_BASE + Math.random() * 0.08,
+        ax: Math.random() * Math.PI * 2,
+        ay: Math.random() * Math.PI * 2,
+        sx: 0.0002 + Math.random() * 0.0003,
+        sy: 0.0002 + Math.random() * 0.0003,
+        // Stagger: each blob fires slightly after the previous
+        // creating a ripple rather than a single flash
+        phaseOffset: (i / count) * STAGGER,
+      });
     }
   }
 
-  function createParticle(xOverride) {
-    const r = BASE_RADIUS_MIN + Math.random() * (BASE_RADIUS_MAX - BASE_RADIUS_MIN);
-    return {
-      x:         (xOverride !== undefined ? xOverride : Math.random()) * W,
-      y:         Math.random() * H,
-      baseR:     r,
-      r:         r,
-      colour:    COLOURS[Math.floor(Math.random() * COLOURS.length)],
-      opacity:   OPACITY_MIN + Math.random() * (OPACITY_MAX - OPACITY_MIN),
-      // Sine-wave drift
-      angleX:    Math.random() * Math.PI * 2,
-      angleY:    Math.random() * Math.PI * 2,
-      speedX:    (0.3 + Math.random() * 0.7) * DRIFT_SPEED,
-      speedY:    (0.3 + Math.random() * 0.7) * DRIFT_SPEED,
-      // Phase offset so each particle breathes out of sync
-      pulseOffset: Math.random() * Math.PI * 2,
-    };
-  }
-
-  function draw(ts) {
+  function frame(ts) {
+    octx.clearRect(0, 0, W, H);
     ctx.clearRect(0, 0, W, H);
 
-    // Soft blur on entire canvas draw
-    ctx.filter = `blur(${BLUR_AMOUNT}px)`;
+    // Smooth indirect mouse parallax
+    mx += (tmx - mx) * 0.03;
+    my += (tmy - my) * 0.03;
+    const ox = (0.5 - mx) * W * PARALLAX;
+    const oy = (0.5 - my) * H * PARALLAX;
 
-    // Smooth mouse tracking (lazy follow)
-    mouseX += (targetMouseX - mouseX) * 0.04;
-    mouseY += (targetMouseY - mouseY) * 0.04;
+    blobs.forEach(b => {
+      // Slow organic drift
+      b.ax += b.sx; b.ay += b.sy;
+      b.x  += Math.sin(b.ax) * DRIFT;
+      b.y  += Math.cos(b.ay) * DRIFT;
+      const pad = b.baseR + 10;
+      if (b.x < -pad) b.x = W + pad;
+      if (b.x > W + pad) b.x = -pad;
+      if (b.y < -pad) b.y = H + pad;
+      if (b.y > H + pad) b.y = -pad;
 
-    // Parallax offset (inverted — field moves opposite to cursor)
-    const offsetX = (0.5 - mouseX) * W * PARALLAX_STRENGTH;
-    const offsetY = (0.5 - mouseY) * H * PARALLAX_STRENGTH;
+      // Heartbeat phase — staggered per blob
+      const cycleT = ((ts / CYCLE_MS) + b.phaseOffset) % 1;
+      const hb = heartbeatCurve(cycleT);  // 0..1 beat intensity
 
-    particles.forEach(p => {
-      // Breathing pulse
-      const pulse = Math.sin(ts / PULSE_PERIOD * Math.PI * 2 + p.pulseOffset);
-      p.r = p.baseR * (1 + PULSE_AMPLITUDE * pulse);
+      // Sharp radius swell + opacity flare on beat
+      b.r = b.baseR * (1 + PULSE_SWELL * hb);
+      const opacity = b.baseOpacity + OPACITY_FLARE * hb;
 
-      // Slow organic drift using sine waves
-      p.angleX += p.speedX;
-      p.angleY += p.speedY;
-      p.x += Math.sin(p.angleX) * 0.4;
-      p.y += Math.cos(p.angleY) * 0.4;
-
-      // Wrap edges
-      if (p.x < -p.baseR * 2) p.x = W + p.baseR;
-      if (p.x > W + p.baseR * 2) p.x = -p.baseR;
-      if (p.y < -p.baseR * 2) p.y = H + p.baseR;
-      if (p.y > H + p.baseR * 2) p.y = -p.baseR;
-
-      // Draw
-      ctx.beginPath();
-      ctx.arc(p.x + offsetX, p.y + offsetY, p.r, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(${p.colour}, ${p.opacity})`;
-      ctx.fill();
+      // Radial gradient blob
+      const gx = b.x + ox, gy = b.y + oy;
+      const [r, g, bv] = b.col;
+      const grad = octx.createRadialGradient(gx, gy, 0, gx, gy, b.r);
+      grad.addColorStop(0,   `rgba(${r},${g},${bv},${opacity.toFixed(3)})`);
+      grad.addColorStop(0.4, `rgba(${r},${g},${bv},${(opacity * 0.55).toFixed(3)})`);
+      grad.addColorStop(1,   `rgba(${r},${g},${bv},0)`);
+      octx.beginPath();
+      octx.arc(gx, gy, b.r, 0, Math.PI * 2);
+      octx.fillStyle = grad;
+      octx.fill();
     });
 
-    ctx.filter = "none";
-    raf = requestAnimationFrame(draw);
+    // Blit offscreen → main with gaussian blur
+    ctx.filter = `blur(${BLUR_PX}px)`;
+    ctx.drawImage(off, 0, 0);
+    ctx.filter = 'none';
+
+    raf = requestAnimationFrame(frame);
   }
 
-  // ── Mouse tracking ──
-  window.addEventListener("mousemove", (e) => {
-    targetMouseX = e.clientX / W;
-    targetMouseY = e.clientY / H;
+  // Mouse / touch tracking
+  window.addEventListener('mousemove', e => {
+    tmx = e.clientX / W; tmy = e.clientY / H;
   });
-
-  // ── Touch tracking (mobile) ──
-  window.addEventListener("touchmove", (e) => {
-    if (e.touches.length > 0) {
-      targetMouseX = e.touches[0].clientX / W;
-      targetMouseY = e.touches[0].clientY / H;
+  window.addEventListener('touchmove', e => {
+    if (e.touches.length) {
+      tmx = e.touches[0].clientX / W;
+      tmy = e.touches[0].clientY / H;
     }
   }, { passive: true });
 
-  window.addEventListener("resize", () => {
+  window.addEventListener('resize', () => {
     cancelAnimationFrame(raf);
     resize();
-    raf = requestAnimationFrame(draw);
+    raf = requestAnimationFrame(frame);
   });
 
   resize();
-  raf = requestAnimationFrame(draw);
+  raf = requestAnimationFrame(frame);
 
 })();
 </script>
