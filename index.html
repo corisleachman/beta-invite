@@ -627,6 +627,58 @@
       .hero { padding: 120px 20px 60px; }
       footer { padding: 24px 20px; }
     }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px 48px;
+      margin-top: 40px;
+    }
+    @media (max-width: 600px) {
+      .features-grid { grid-template-columns: 1fr; }
+    }
+    .features-col {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .features-col li {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 16px;
+      color: var(--ink-2);
+    }
+    .feat-check {
+      flex-shrink: 0;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: white;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .feat-badge {
+      margin-left: auto;
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--accent);
+      border: 1px solid var(--accent-lt);
+      padding: 2px 7px;
+      border-radius: 20px;
+    }
+    .feat-badge--soon {
+      color: var(--ink-3);
+      border-color: var(--border);
+    }
   </style>
 </head>
 
@@ -737,6 +789,32 @@
       <li><div class="point-dot"></div>Surfaces conversations and replies in one calm place</li>
       <li><div class="point-dot"></div>Suggests the right follow-up — value drop, check-in, or chase — at the right moment</li>
     </ul>
+  </section>
+
+  <div class="section-divider"></div>
+
+    <!-- ═══════════════════════════════════════
+       FEATURES LIST
+  ═══════════════════════════════════════ -->
+  <section class="reveal">
+    <p class="section-label">What's included</p>
+    <h2 class="section-headline">Everything you need.<br><em>Nothing you don't.</em></h2>
+    <div class="features-grid">
+      <ul class="features-col">
+        <li><span class="feat-check">✓</span>Multiple campaigns &amp; prospect lists</li>
+        <li><span class="feat-check">✓</span>Gmail integration</li>
+        <li><span class="feat-check">✓</span>Auto-scheduled sending <span class="feat-badge">Pro</span></li>
+        <li><span class="feat-check">✓</span>AI-drafted emails <span class="feat-badge">Pro</span></li>
+        <li><span class="feat-check">✓</span>Follow-up queue &amp; reminders</li>
+      </ul>
+      <ul class="features-col">
+        <li><span class="feat-check">✓</span>Prospect status tracking</li>
+        <li><span class="feat-check">✓</span>One-click prospect qualification</li>
+        <li><span class="feat-check">✓</span>Secure, isolated account data</li>
+        <li><span class="feat-check">✓</span>Free tier to get started</li>
+        <li><span class="feat-check">✓</span>Microsoft Outlook <span class="feat-badge feat-badge--soon">Soon</span></li>
+      </ul>
+    </div>
   </section>
 
   <div class="section-divider"></div>
