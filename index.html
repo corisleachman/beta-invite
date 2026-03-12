@@ -1125,40 +1125,6 @@ document.getElementById("signup-form").addEventListener("submit", async (e) => {
     return Math.min(1, Math.max(0, b1 + b2));
   }
 
-  // Scanning line effect: creates a horizontal sweep across the canvas
-  // positioned by heartbeat phase, with a bright glow core and soft fade
-  function drawScanLine(ctx, ts) {
-    const cycleT = (ts / CYCLE_MS) % 1;
-    const hb = heartbeatCurve(cycleT);
-    
-    // Position: starts at top (0), sweeps to bottom (H), triggered by heartbeat
-    const scanY = H * hb;
-    
-    // Line thickness and glow
-    const lineWidth = 2;
-    const glowWidth = 40;
-    const glowOpacity = 0.15 * hb; // Glow fades with heartbeat
-    
-    // Soft glow gradient
-    const grad = ctx.createLinearGradient(0, scanY - glowWidth, 0, scanY + glowWidth);
-    grad.addColorStop(0, `rgba(107, 158, 142, 0)`);
-    grad.addColorStop(0.4, `rgba(107, 158, 142, ${glowOpacity * 0.5})`);
-    grad.addColorStop(0.5, `rgba(107, 158, 142, ${glowOpacity})`);
-    grad.addColorStop(0.6, `rgba(107, 158, 142, ${glowOpacity * 0.5})`);
-    grad.addColorStop(1, `rgba(107, 158, 142, 0)`);
-    
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, scanY - glowWidth, W, glowWidth * 2);
-    
-    // Bright core line
-    ctx.strokeStyle = `rgba(107, 158, 142, ${0.6 * hb})`;
-    ctx.lineWidth = lineWidth;
-    ctx.beginPath();
-    ctx.moveTo(0, scanY);
-    ctx.lineTo(W, scanY);
-    ctx.stroke();
-  }
-
   let W, H, blobs = [];
   let mx = 0.5, my = 0.5, tmx = 0.5, tmy = 0.5;
   let off, octx, raf;
@@ -1249,9 +1215,6 @@ document.getElementById("signup-form").addEventListener("submit", async (e) => {
     ctx.filter = `blur(${BLUR_PX}px)`;
     ctx.drawImage(off, 0, 0);
     ctx.filter = 'none';
-
-    // Draw scanning line effect
-    drawScanLine(ctx, ts);
 
     raf = requestAnimationFrame(frame);
   }
