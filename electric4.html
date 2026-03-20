@@ -1208,14 +1208,14 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
 
   // ── PARTICLE TUNING ───────────────────────────────────
   const P_COUNT       = 18;    // particles per box fire
-  const P_RADIUS_MIN  = 1.5;   // dot radius min (px)
-  const P_RADIUS_MAX  = 3.5;   // dot radius max (px)
-  const P_SPEED_MIN   = 0.6;   // upward drift speed min (px/frame)
-  const P_SPEED_MAX   = 2.2;   // upward drift speed max (px/frame)
-  const P_WOBBLE      = 0.4;   // horizontal wobble amplitude (px/frame)
-  const P_LIFE_MIN    = 55;    // frames alive min
-  const P_LIFE_MAX    = 110;   // frames alive max
-  const P_OPACITY     = 0.7;   // peak opacity
+  const P_RADIUS_MIN  = 0.8;   // dot radius min (px)
+  const P_RADIUS_MAX  = 1.8;   // dot radius max (px)
+  const P_SPEED_MIN   = 0.4;   // speed min (px/frame)
+  const P_SPEED_MAX   = 1.8;   // speed max (px/frame)
+  const P_WOBBLE      = 0.4;   // wobble (unused — direction is now fully random)
+  const P_LIFE_MIN    = 45;    // frames alive min
+  const P_LIFE_MAX    = 90;    // frames alive max
+  const P_OPACITY     = 0.5;   // peak opacity
   // ──────────────────────────────────────────────────────
 
   // Particle canvas
@@ -1250,8 +1250,11 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
       const x   = leftX + Math.random() * width;
       const y   = topY  + (Math.random() - 0.5) * 10;
       const r   = P_RADIUS_MIN + Math.random() * (P_RADIUS_MAX - P_RADIUS_MIN);
-      const vy  = -(P_SPEED_MIN + Math.random() * (P_SPEED_MAX - P_SPEED_MIN)); // upward
-      const vx  = (Math.random() - 0.5) * P_WOBBLE * 2;
+      // Random direction — full 360°
+      const angle = Math.random() * Math.PI * 2;
+      const speed = P_SPEED_MIN + Math.random() * (P_SPEED_MAX - P_SPEED_MIN);
+      const vx  = Math.cos(angle) * speed;
+      const vy  = Math.sin(angle) * speed;
       const life = Math.floor(P_LIFE_MIN + Math.random() * (P_LIFE_MAX - P_LIFE_MIN));
 
       particles.push({ x, y, r, vx, vy, life, maxLife: life, rgb });
