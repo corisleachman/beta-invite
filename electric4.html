@@ -1,0 +1,1345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>outreach. — Invite-only beta</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+/* ── TOKENS ── */
+:root {
+  --bg:    #0d0914;
+  --s:     rgba(255,255,255,0.04);
+  --s2:    rgba(255,255,255,0.07);
+  --b:     rgba(255,255,255,0.07);
+  --b2:    rgba(255,255,255,0.13);
+  --t:     #f4f4f2;
+  --tm:    #a8a8b8;
+  --td:    #6b6b80;
+  --pink:  #ff1493;
+  --cyan:  #00d4ff;
+  --green: #64dc78;
+  --amber: #ff9d42;
+  --grad:  linear-gradient(135deg, #ff1493, #00d4ff);
+  --grad-text: linear-gradient(135deg, #ff1493 0%, #00d4ff 100%);
+  --glow-pink: rgba(255,20,147,0.25);
+  --glow-cyan: rgba(0,212,255,0.2);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--t);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* ── NOISE TEXTURE OVERLAY ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.4;
+}
+
+/* ── BACKGROUND GLOW ORBS ── */
+.bg-orbs {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(120px);
+  opacity: 0.12;
+}
+.orb-1 { width: 600px; height: 600px; background: var(--pink); top: -200px; right: -100px; animation: drift1 18s ease-in-out infinite; }
+.orb-2 { width: 500px; height: 500px; background: var(--cyan);  bottom: 20%; left: -150px; animation: drift2 22s ease-in-out infinite; }
+.orb-3 { width: 400px; height: 400px; background: var(--amber); top: 40%; right: 15%; animation: drift3 26s ease-in-out infinite; opacity: 0.08; }
+
+@keyframes drift1 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-60px,80px)} }
+@keyframes drift2 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(80px,-60px)} }
+@keyframes drift3 { 0%,100%{transform:translate(0,0)} 33%{transform:translate(-40px,60px)} 66%{transform:translate(50px,-30px)} }
+
+/* ── LAYOUT ── */
+.wrap { position: relative; z-index: 1; }
+.container { max-width: 1100px; margin: 0 auto; padding: 0 40px; }
+.container-sm { max-width: 720px; margin: 0 auto; padding: 0 40px; }
+
+/* ── NAV ── */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  padding: 20px 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(13,9,20,0.7);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--b);
+}
+.nav-logo {
+  font-family: 'Outfit', sans-serif;
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--t);
+  text-decoration: none;
+  letter-spacing: -0.03em;
+}
+.nav-logo span {
+  background: var(--grad-text);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.nav-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  background: var(--grad);
+  color: white;
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  border-radius: 100px;
+  transition: opacity 0.2s, transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 0 24px var(--glow-pink);
+}
+.nav-cta:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 4px 32px var(--glow-pink); }
+
+/* ── HERO ── */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 120px 40px 80px;
+}
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  border: 1px solid var(--b2);
+  border-radius: 100px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--cyan);
+  background: rgba(0,212,255,0.06);
+  margin-bottom: 36px;
+  animation: fadeUp 0.8s ease both;
+}
+.hero-badge::before {
+  content: '';
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--cyan);
+  box-shadow: 0 0 8px var(--cyan);
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+.hero-headline {
+  font-family: 'Outfit', sans-serif;
+  font-size: clamp(48px, 7vw, 88px);
+  font-weight: 900;
+  line-height: 1.0;
+  letter-spacing: -0.04em;
+  color: var(--t);
+  margin-bottom: 28px;
+  animation: fadeUp 0.8s 0.1s ease both;
+}
+.hero-headline .grad {
+  background: var(--grad-text);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.hero-sub {
+  font-size: 18px;
+  color: var(--tm);
+  max-width: 480px;
+  line-height: 1.65;
+  margin-bottom: 52px;
+  animation: fadeUp 0.8s 0.2s ease both;
+}
+.hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+  animation: fadeUp 0.8s 0.3s ease both;
+}
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 36px;
+  background: var(--grad);
+  color: white;
+  font-family: 'Outfit', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+  border-radius: 100px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 0 40px var(--glow-pink), 0 4px 20px rgba(0,0,0,0.4);
+  letter-spacing: 0.01em;
+}
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 60px var(--glow-pink), 0 8px 30px rgba(0,0,0,0.4); }
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 15px 28px;
+  background: transparent;
+  color: var(--tm);
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  border-radius: 100px;
+  border: 1px solid var(--b2);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-ghost:hover { color: var(--t); border-color: rgba(255,255,255,0.3); }
+.hero-note {
+  margin-top: 20px;
+  font-size: 12px;
+  color: var(--td);
+  animation: fadeUp 0.8s 0.4s ease both;
+}
+
+/* ── SECTION DIVIDER ── */
+.divider {
+  width: 1px;
+  height: 80px;
+  background: linear-gradient(to bottom, transparent, var(--b2), transparent);
+  margin: 0 auto;
+}
+
+/* ── PROBLEM SECTION ── */
+.section { padding: 100px 0; }
+.section-label {
+  font-family: 'Outfit', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--pink);
+  margin-bottom: 24px;
+}
+.section-headline {
+  font-family: 'Outfit', sans-serif;
+  font-size: clamp(32px, 4vw, 52px);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  color: var(--t);
+  margin-bottom: 24px;
+}
+.section-body {
+  font-size: 17px;
+  color: var(--tm);
+  line-height: 1.7;
+  max-width: 580px;
+}
+.section-body + .section-body { margin-top: 16px; }
+
+/* Problem two-col */
+.problem-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: start;
+}
+.problem-right {
+  padding-top: 8px;
+}
+.callout-card {
+  background: var(--s);
+  border: 1px solid var(--b2);
+  border-radius: 16px;
+  padding: 28px;
+  margin-top: 32px;
+}
+.callout-card-label {
+  font-family: 'Outfit', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--cyan);
+  margin-bottom: 12px;
+}
+.callout-card-headline {
+  font-family: 'Outfit', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--t);
+  line-height: 1.25;
+  margin-bottom: 12px;
+  letter-spacing: -0.02em;
+}
+.callout-card-body {
+  font-size: 14px;
+  color: var(--tm);
+  line-height: 1.65;
+}
+
+/* ── HOW IT WORKS ── */
+.steps { padding: 100px 0; }
+.steps-header { text-align: center; margin-bottom: 72px; }
+.steps-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+}
+.step-card {
+  background: var(--s);
+  border: 1px solid var(--b);
+  padding: 40px 36px;
+  position: relative;
+  overflow: hidden;
+  transition: background 0.3s, border-color 0.3s;
+}
+.step-card:first-child { border-radius: 16px 0 0 16px; }
+.step-card:last-child  { border-radius: 0 16px 16px 0; }
+.step-card:hover { background: var(--s2); border-color: var(--b2); }
+.step-card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--grad);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.step-card:hover::after { opacity: 1; }
+.step-num {
+  font-family: 'Outfit', sans-serif;
+  font-size: 48px;
+  font-weight: 900;
+  background: var(--grad-text);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1;
+  margin-bottom: 20px;
+  letter-spacing: -0.04em;
+}
+.step-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--t);
+  letter-spacing: -0.02em;
+  margin-bottom: 12px;
+}
+.step-body { font-size: 14px; color: var(--tm); line-height: 1.65; }
+
+/* ── FEATURES SECTION ── */
+.features { padding: 100px 0; }
+.features-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  align-items: start;
+}
+.features-left .section-body { margin-bottom: 40px; }
+.feature-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.feature-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 18px;
+  background: var(--s);
+  border: 1px solid var(--b);
+  border-radius: 10px;
+  transition: border-color 0.2s, background 0.2s;
+}
+.feature-item:hover { border-color: var(--b2); background: var(--s2); }
+.feature-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--grad);
+  flex-shrink: 0;
+  margin-top: 6px;
+  box-shadow: 0 0 8px var(--glow-pink);
+}
+.feature-text { font-size: 14px; color: var(--t); line-height: 1.5; }
+.feature-tag {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-left: 6px;
+}
+.tag-pro  { background: rgba(255,20,147,0.15); color: var(--pink); border: 1px solid rgba(255,20,147,0.2); }
+.tag-soon { background: rgba(0,212,255,0.1);   color: var(--cyan); border: 1px solid rgba(0,212,255,0.18); }
+
+/* What's included — right side panel */
+.included-panel {
+  background: var(--s);
+  border: 1px solid var(--b2);
+  border-radius: 16px;
+  padding: 32px;
+  position: sticky;
+  top: 100px;
+}
+.included-label {
+  font-family: 'Outfit', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--td);
+  margin-bottom: 20px;
+}
+.included-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.included-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  color: var(--tm);
+}
+.included-item .check {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: rgba(100,220,120,0.12);
+  border: 1px solid rgba(100,220,120,0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 10px;
+  color: var(--green);
+}
+
+/* ── SCREENS / WHAT IT LOOKS LIKE ── */
+.screens { padding: 100px 0; }
+.screens-header { text-align: center; margin-bottom: 60px; }
+.screens-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.screen-card {
+  background: var(--s);
+  border: 1px solid var(--b);
+  border-radius: 14px;
+  padding: 28px 24px;
+  transition: border-color 0.2s, transform 0.2s;
+  cursor: default;
+}
+.screen-card:hover { border-color: rgba(255,20,147,0.3); transform: translateY(-3px); }
+.screen-icon {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  background: var(--s2);
+  border: 1px solid var(--b2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  margin-bottom: 16px;
+}
+.screen-name {
+  font-family: 'Outfit', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--t);
+  letter-spacing: -0.01em;
+  margin-bottom: 8px;
+}
+.screen-desc { font-size: 13px; color: var(--tm); line-height: 1.55; }
+
+/* ── EARLY ACCESS FORM ── */
+.access { padding: 100px 0; }
+.access-inner {
+  background: var(--s);
+  border: 1px solid var(--b2);
+  border-radius: 24px;
+  padding: 64px;
+  position: relative;
+  overflow: hidden;
+}
+.access-inner::before {
+  content: '';
+  position: absolute;
+  top: -1px; left: 10%; right: 10%;
+  height: 1px;
+  background: var(--grad);
+  opacity: 0.6;
+}
+.access-header {
+  text-align: center;
+  margin-bottom: 48px;
+}
+.access-header .section-label { display: block; }
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+.form-full { grid-column: 1 / -1; }
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.form-label {
+  font-family: 'Outfit', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--td);
+}
+.form-input, .form-select {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--b2);
+  border-radius: 10px;
+  padding: 13px 16px;
+  color: var(--t);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s, background 0.2s;
+  width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.form-input:focus, .form-select:focus {
+  border-color: rgba(255,20,147,0.5);
+  background: rgba(255,20,147,0.04);
+}
+.form-input::placeholder { color: var(--td); }
+.form-select { cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b6b80' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
+.form-select option { background: #1a1028; color: var(--t); }
+.form-submit-wrap { grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 8px; }
+.btn-submit {
+  width: 100%;
+  padding: 16px;
+  background: var(--grad);
+  color: white;
+  font-family: 'Outfit', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  border: none;
+  border-radius: 100px;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 0 32px var(--glow-pink);
+  letter-spacing: 0.02em;
+}
+.btn-submit:hover { transform: translateY(-1px); box-shadow: 0 4px 40px var(--glow-pink); }
+.form-note { font-size: 12px; color: var(--td); }
+
+/* Success state */
+.success-msg {
+  display: none;
+  text-align: center;
+  padding: 40px;
+}
+.success-msg.show { display: block; }
+.success-icon { font-size: 40px; margin-bottom: 16px; }
+.success-headline {
+  font-family: 'Outfit', sans-serif;
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--t);
+  letter-spacing: -0.02em;
+  margin-bottom: 12px;
+}
+.success-body { font-size: 15px; color: var(--tm); }
+
+/* ── FOUNDER NOTE ── */
+.founder { padding: 80px 0 120px; }
+.founder-inner {
+  display: flex;
+  gap: 48px;
+  align-items: flex-start;
+  max-width: 760px;
+  margin: 0 auto;
+}
+.founder-mark {
+  font-family: 'Outfit', sans-serif;
+  font-size: 80px;
+  font-weight: 900;
+  background: var(--grad-text);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: -8px;
+}
+.founder-body { font-size: 17px; color: var(--tm); line-height: 1.7; font-style: italic; }
+.founder-body strong { color: var(--t); font-style: normal; font-weight: 500; }
+.founder-sig {
+  margin-top: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.founder-avatar {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: var(--grad);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  color: white;
+  flex-shrink: 0;
+}
+.founder-name { font-size: 14px; color: var(--td); }
+
+/* ── FOOTER ── */
+footer {
+  border-top: 1px solid var(--b);
+  padding: 32px 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.footer-logo {
+  font-family: 'Outfit', sans-serif;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+.footer-logo span {
+  background: var(--grad-text);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.footer-note { font-size: 12px; color: var(--td); }
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.reveal {
+  opacity: 0;
+  transform: translateY(32px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── GRADIENT LINE ── */
+.grad-line {
+  height: 1px;
+  background: var(--grad);
+  opacity: 0.2;
+  margin: 0;
+}
+
+/* ── SCAN EFFECT — border glow on scan-lit ── */
+/* Base transition on all scannable elements */
+.callout-card,
+.step-card,
+.screen-card,
+.founder-inner,
+.access-inner,
+.features-right {
+  transition: border-color 0.25s ease, box-shadow 0.25s ease,
+              background 0.2s ease, transform 0.2s ease;
+}
+
+/* Pink lit state — primary scan colour */
+.scan-lit-pink {
+  border-color: rgba(255, 20, 147, 0.75) !important;
+  box-shadow: 0 0 18px rgba(255, 20, 147, 0.22),
+              inset 0 0 12px rgba(255, 20, 147, 0.06) !important;
+}
+
+/* Cyan lit state — secondary scan colour */
+.scan-lit-cyan {
+  border-color: rgba(0, 212, 255, 0.75) !important;
+  box-shadow: 0 0 18px rgba(0, 212, 255, 0.22),
+              inset 0 0 12px rgba(0, 212, 255, 0.06) !important;
+}
+
+/* Fade-out — longer than fade-in so the glow lingers */
+.scan-fade {
+  transition: border-color 0.9s ease, box-shadow 0.9s ease !important;
+}
+
+</style>
+</head>
+<body>
+
+<canvas id="pulse-canvas" style="position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;"></canvas>
+<canvas id="particle-canvas" style="position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:2;"></canvas>
+
+<div class="bg-orbs">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">outreach<span>.</span></a>
+  <a href="#access" class="nav-cta">Request access →</a>
+</nav>
+
+<div class="wrap">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-badge">Invite-only beta</div>
+    <h1 class="hero-headline">
+      Outreach without<br>
+      the <span class="grad">headache.</span>
+    </h1>
+    <p class="hero-sub">For people who win work through conversations. A calmer system for staying consistent.</p>
+    <div class="hero-actions">
+      <a href="#access" class="btn-primary">Request early access →</a>
+      <a href="#how" class="btn-ghost">See how it works</a>
+    </div>
+    <p class="hero-note">Join the first 100 beta users · No spam · Just occasional updates</p>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- PROBLEM -->
+  <section class="section" id="problem">
+    <div class="container">
+      <div class="problem-grid reveal">
+        <div>
+          <div class="section-label">The problem</div>
+          <h2 class="section-headline">Most outreach systems are built wrong.</h2>
+          <p class="section-body">They're built for sales teams with ops budgets. Pipelines, deal stages, dashboards, automation — all of it needs setting up, maintaining, and learning.</p>
+          <p class="section-body">You open them and feel the weight of it before you've sent a single email. Most people doing outreach don't need any of that. They just need something that keeps them on track.</p>
+        </div>
+        <div class="problem-right">
+          <div class="callout-card reveal">
+            <div class="callout-card-label">Outreach works.<br>Consistency breaks.</div>
+            <h3 class="callout-card-headline">Most outreach doesn't fail because the message is bad.</h3>
+            <p class="callout-card-body">It fails because follow-ups stop happening. A quick check-in. A friendly nudge. Those small actions create conversations. And conversations create opportunity. But only if they actually happen.</p>
+          </div>
+          <div class="callout-card reveal" data-scan="cyan" style="margin-top:16px;">
+            <div class="callout-card-label">The real problem</div>
+            <h3 class="callout-card-headline">It's not sending emails. It's remembering the next one.</h3>
+            <p class="callout-card-body">Not a CRM. Not a cold-email blaster. Just a simple tool that keeps your outreach moving.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grad-line"></div>
+
+  <!-- HOW IT WORKS -->
+  <section class="steps" id="how">
+    <div class="container">
+      <div class="steps-header reveal">
+        <div class="section-label" style="text-align:center;">How it works</div>
+        <h2 class="section-headline" style="text-align:center;max-width:500px;margin:0 auto;">Three steps. Then it runs itself.</h2>
+      </div>
+      <div class="steps-grid reveal">
+        <div class="step-card" data-scan="pink">
+          <div class="step-num">01</div>
+          <div class="step-title">Import and review</div>
+          <p class="step-body">Bring in any prospect list. Review who's worth contacting. Every list has noise — this is where you cut it.</p>
+        </div>
+        <div class="step-card" data-scan="cyan">
+          <div class="step-num">02</div>
+          <div class="step-title">Send with intention</div>
+          <p class="step-body">Drafts are generated. You review and approve. Nothing sends without your eyes on it first.</p>
+        </div>
+        <div class="step-card" data-scan="pink">
+          <div class="step-num">03</div>
+          <div class="step-title">Never lose momentum</div>
+          <p class="step-body">Follow-ups appear when they're due. Conversations surface automatically. The next step is always obvious.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grad-line"></div>
+
+  <!-- FEATURES -->
+  <section class="features" id="features">
+    <div class="container">
+      <div class="features-grid">
+        <div class="features-left reveal">
+          <div class="section-label">The system</div>
+          <h2 class="section-headline">An effortless system for consistent outreach.</h2>
+          <p class="section-body">This tool does one thing. It stops your outreach from going quiet. No pipelines. No confusing dashboards. No CRM to set up and maintain.</p>
+          <div class="feature-list" style="margin-top:32px;">
+            <div class="feature-item">
+              <div class="feature-dot"></div>
+              <div class="feature-text">Tracks who you've contacted and when</div>
+            </div>
+            <div class="feature-item">
+              <div class="feature-dot"></div>
+              <div class="feature-text">Tells you what needs to happen next</div>
+            </div>
+            <div class="feature-item">
+              <div class="feature-dot"></div>
+              <div class="feature-text">Makes the next action effortless, so momentum never disappears</div>
+            </div>
+            <div class="feature-item">
+              <div class="feature-dot"></div>
+              <div class="feature-text">Surfaces conversations and replies in one place</div>
+            </div>
+            <div class="feature-item">
+              <div class="feature-dot"></div>
+              <div class="feature-text">Suggests the right follow-up — value drop, check-in, or chase — at the right moment</div>
+            </div>
+          </div>
+        </div>
+        <div class="reveal">
+          <div class="included-panel">
+            <div class="included-label">What's included</div>
+            <div class="included-list">
+              <div class="included-item"><div class="check">✓</div><span>Multiple campaigns &amp; prospect lists</span></div>
+              <div class="included-item"><div class="check">✓</div><span>Gmail integration</span></div>
+              <div class="included-item">
+                <div class="check">✓</div>
+                <span>Auto-scheduled sending <span class="feature-tag tag-pro">Pro</span></span>
+              </div>
+              <div class="included-item">
+                <div class="check">✓</div>
+                <span>AI-drafted emails <span class="feature-tag tag-pro">Pro</span></span>
+              </div>
+              <div class="included-item"><div class="check">✓</div><span>Follow-up queue &amp; reminders</span></div>
+              <div class="included-item"><div class="check">✓</div><span>Prospect status tracking</span></div>
+              <div class="included-item"><div class="check">✓</div><span>One-click prospect qualification</span></div>
+              <div class="included-item"><div class="check">✓</div><span>Your data stays yours</span></div>
+              <div class="included-item"><div class="check">✓</div><span>Free tier to get started</span></div>
+              <div class="included-item">
+                <div class="check" style="color:var(--cyan);background:rgba(0,212,255,0.08);border-color:rgba(0,212,255,0.2);">→</div>
+                <span>Microsoft Outlook <span class="feature-tag tag-soon">Soon</span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grad-line"></div>
+
+  <!-- WHAT IT LOOKS LIKE -->
+  <section class="screens" id="screens">
+    <div class="container">
+      <div class="screens-header reveal">
+        <div class="section-label" style="text-align:center;">What it looks like</div>
+        <h2 class="section-headline" style="text-align:center;">Simple by design.<br>Effortless by default.</h2>
+        <p style="color:var(--tm);font-size:16px;margin-top:16px;max-width:480px;margin-left:auto;margin-right:auto;">A dashboard designed around actions, not data. You always know what to do next.</p>
+      </div>
+      <div class="screens-grid reveal">
+        <div class="screen-card" data-scan="pink">
+          <div class="screen-icon">📋</div>
+          <div class="screen-name">Follow-up queue</div>
+          <p class="screen-desc">See exactly who needs a reply and when. Nothing gets missed.</p>
+        </div>
+        <div class="screen-card" data-scan="cyan">
+          <div class="screen-icon">👥</div>
+          <div class="screen-name">Prospect overview</div>
+          <p class="screen-desc">Every active conversation at a glance, with context already loaded.</p>
+        </div>
+        <div class="screen-card" data-scan="pink">
+          <div class="screen-icon">📈</div>
+          <div class="screen-name">Connection pipeline</div>
+          <p class="screen-desc">Track warm leads from first touch to booked call in one view.</p>
+        </div>
+        <div class="screen-card" data-scan="cyan">
+          <div class="screen-icon">🔍</div>
+          <div class="screen-name">Prospect review</div>
+          <p class="screen-desc">Review profiles and draft personalised outreach without switching tabs.</p>
+        </div>
+        <div class="screen-card" data-scan="pink">
+          <div class="screen-icon">⚡</div>
+          <div class="screen-name">Outreach dashboard</div>
+          <p class="screen-desc">Your daily outreach actions, surfaced and prioritised automatically.</p>
+        </div>
+        <div class="screen-card" data-scan="cyan">
+          <div class="screen-icon">✍️</div>
+          <div class="screen-name">Message drafts</div>
+          <p class="screen-desc">AI-assisted drafts that sound like you — ready to send in one click.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grad-line"></div>
+
+  <!-- ACCESS FORM -->
+  <section class="access" id="access">
+    <div class="container-sm">
+      <div class="access-inner reveal" data-scan="pink">
+        <div class="access-header">
+          <span class="section-label">Early access</span>
+          <h2 class="section-headline" style="margin-top:16px;">Request beta access</h2>
+          <p style="color:var(--tm);font-size:15px;margin-top:12px;max-width:460px;margin-left:auto;margin-right:auto;">The product is currently being tested with a small group of early users. People who already run outreach and want a calmer system for staying consistent.</p>
+        </div>
+
+        <form id="access-form" onsubmit="handleSubmit(event)">
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">First name</label>
+              <input class="form-input" type="text" placeholder="Coris" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email</label>
+              <input class="form-input" type="email" placeholder="you@example.com" required>
+            </div>
+            <div class="form-group form-full">
+              <label class="form-label">What best describes you?</label>
+              <select class="form-select" required>
+                <option value="" disabled selected>Select your role</option>
+                <option>Consultant</option>
+                <option>Agency founder</option>
+                <option>Recruiter</option>
+                <option>Fractional operator</option>
+                <option>Business development</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="form-group form-full">
+              <label class="form-label">How do you currently manage outreach?</label>
+              <select class="form-select" required>
+                <option value="" disabled selected>Select an option</option>
+                <option>Spreadsheet</option>
+                <option>CRM (HubSpot, Pipedrive, etc.)</option>
+                <option>Inbox + memory</option>
+                <option>Nothing consistent yet</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="form-submit-wrap">
+              <button type="submit" class="btn-submit">Request early access →</button>
+              <p class="form-note">No spam. Just occasional updates as the beta develops.</p>
+            </div>
+          </div>
+        </form>
+
+        <div class="success-msg" id="success-msg">
+          <div class="success-icon">✦</div>
+          <h3 class="success-headline">You're on the list.</h3>
+          <p class="success-body">I'll be inviting people in small groups as the beta develops.<br>Thanks for your interest — I'll be in touch.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOUNDER NOTE -->
+  <section class="founder">
+    <div class="container">
+      <div class="founder-inner reveal" data-scan="cyan">
+        <div class="founder-mark">"</div>
+        <div>
+          <p class="founder-body">I built this because I was tired of juggling spreadsheets, reminders and half-finished outreach tools. I wanted something <strong>quieter</strong>. Something that simply keeps outreach moving without the overhead. So I built it for myself first. Now I'm testing whether other people want it too.</p>
+          <div class="founder-sig">
+            <div class="founder-avatar">C</div>
+            <span class="founder-name">Coris — founder, outreach.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div><!-- end wrap -->
+
+<footer>
+  <div class="footer-logo">outreach<span>.</span></div>
+  <div class="footer-note">Invite-only beta · Built with care · Your data stays yours</div>
+</footer>
+
+<script>
+// Scroll reveal
+const revealEls = document.querySelectorAll('.reveal');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach((entry, i) => {
+    if (entry.isIntersecting) {
+      setTimeout(() => entry.target.classList.add('visible'), i * 60);
+      observer.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.1 });
+revealEls.forEach(el => observer.observe(el));
+
+// Form submit
+function handleSubmit(e) {
+  e.preventDefault();
+  document.getElementById('access-form').style.display = 'none';
+  document.getElementById('success-msg').classList.add('show');
+}
+
+// Smooth nav
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    const id = a.getAttribute('href').slice(1);
+    const el = document.getElementById(id);
+    if (el) {
+      e.preventDefault();
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+});
+</script>
+
+<script>
+// ─────────────────────────────────────────────────────────
+// HEARTBEAT PULSE — Electric Dreams palette
+// Sharp Gaussian rise + diastolic echo, blobs staggered so
+// the pulse ripples across the field rather than flashing all at once.
+// ─────────────────────────────────────────────────────────
+(function () {
+
+  const canvas = document.getElementById('pulse-canvas');
+  const ctx    = canvas.getContext('2d');
+
+  // ── TUNE ──────────────────────────────────────────────
+  const BLOB_COUNT     = 12;     // number of blobs
+  const RADIUS_MIN     = 140;    // blob base radius min (px)
+  const RADIUS_MAX     = 320;    // blob base radius max (px)
+  const CYCLE_MS       = 5000;   // ms between heartbeats
+  const PULSE_SWELL    = 0.40;   // radius expansion on beat
+  const OPACITY_BASE   = 0.18;   // resting blob opacity
+  const OPACITY_FLARE  = 0.28;   // extra opacity at beat peak
+  const DRIFT          = 0.5;    // px per frame organic drift
+  const BLUR_PX        = 40;     // gaussian blur (px)
+  const STAGGER        = 0.20;   // phase stagger across blobs
+  const PARALLAX       = 0.03;   // mouse parallax strength
+  const MOBILE_FACTOR  = 0.6;    // blob reduction on mobile
+
+  // Electric Dreams palette — pink, cyan, a hint of amber
+  // [R, G, B]
+  const PALETTE = [
+    [255,  20, 147],   // --pink
+    [255,  20, 147],   // pink (weighted double — dominant)
+    [  0, 212, 255],   // --cyan
+    [  0, 212, 255],   // cyan (weighted double)
+    [180,  10, 120],   // deep pink
+    [ 80, 160, 220],   // soft cyan-blue
+  ];
+
+  // Heartbeat curve: sharp primary spike + softer diastolic echo
+  // t = 0..1 position within one cycle. Returns intensity 0..1.
+  function heartbeatCurve(t) {
+    const b1 = Math.exp(-((t - 0.04) ** 2) / 0.0012);        // primary beat
+    const b2 = 0.45 * Math.exp(-((t - 0.13) ** 2) / 0.0022); // diastolic echo
+    return Math.min(1, Math.max(0, b1 + b2));
+  }
+
+  let W, H, blobs = [];
+  let mx = 0.5, my = 0.5, tmx = 0.5, tmy = 0.5;
+  let off, octx, raf;
+
+  function isMobile() { return window.innerWidth < 768; }
+
+  function resize() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+    off = document.createElement('canvas');
+    off.width = W; off.height = H;
+    octx = off.getContext('2d');
+    init();
+  }
+
+  function init() {
+    blobs = [];
+    const count = Math.floor(BLOB_COUNT * (isMobile() ? MOBILE_FACTOR : 1));
+    // Grid distribution with jitter for full coverage from frame 1
+    const cols = Math.ceil(Math.sqrt(count * W / H));
+    const rows = Math.ceil(count / cols);
+    const cw = W / cols, ch = H / rows;
+
+    for (let i = 0; i < count; i++) {
+      const col = i % cols, row = Math.floor(i / cols);
+      const pal = PALETTE[Math.floor(Math.random() * PALETTE.length)];
+      const br  = RADIUS_MIN + Math.random() * (RADIUS_MAX - RADIUS_MIN);
+      blobs.push({
+        x:           (col + 0.15 + Math.random() * 0.7) * cw,
+        y:           (row + 0.15 + Math.random() * 0.7) * ch,
+        baseR: br,   r: br,
+        col:         pal,
+        baseOpacity: OPACITY_BASE + Math.random() * 0.07,
+        ax:          Math.random() * Math.PI * 2,
+        ay:          Math.random() * Math.PI * 2,
+        sx:          0.0002 + Math.random() * 0.0003,
+        sy:          0.0002 + Math.random() * 0.0003,
+        // Stagger so blobs ripple rather than all flash simultaneously
+        phaseOffset: (i / count) * STAGGER,
+      });
+    }
+  }
+
+  function frame(ts) {
+    octx.clearRect(0, 0, W, H);
+    ctx.clearRect(0, 0, W, H);
+
+    // Smooth indirect mouse parallax
+    mx += (tmx - mx) * 0.03;
+    my += (tmy - my) * 0.03;
+    const ox = (0.5 - mx) * W * PARALLAX;
+    const oy = (0.5 - my) * H * PARALLAX;
+
+    blobs.forEach(b => {
+      // Slow organic drift, wraps at canvas edge
+      b.ax += b.sx; b.ay += b.sy;
+      b.x  += Math.sin(b.ax) * DRIFT;
+      b.y  += Math.cos(b.ay) * DRIFT;
+      const pad = b.baseR + 10;
+      if (b.x < -pad)   b.x = W + pad;
+      if (b.x > W + pad) b.x = -pad;
+      if (b.y < -pad)   b.y = H + pad;
+      if (b.y > H + pad) b.y = -pad;
+
+      // Heartbeat phase — staggered per blob
+      const cycleT = ((ts / CYCLE_MS) + b.phaseOffset) % 1;
+      const hb = heartbeatCurve(cycleT);
+
+      b.r = b.baseR * (1 + PULSE_SWELL * hb);
+      const opacity = b.baseOpacity + OPACITY_FLARE * hb;
+
+      const gx = b.x + ox, gy = b.y + oy;
+      const [r, g, bv] = b.col;
+      const grad = octx.createRadialGradient(gx, gy, 0, gx, gy, b.r);
+      grad.addColorStop(0,   `rgba(${r},${g},${bv},${opacity.toFixed(3)})`);
+      grad.addColorStop(0.4, `rgba(${r},${g},${bv},${(opacity * 0.5).toFixed(3)})`);
+      grad.addColorStop(1,   `rgba(${r},${g},${bv},0)`);
+      octx.beginPath();
+      octx.arc(gx, gy, b.r, 0, Math.PI * 2);
+      octx.fillStyle = grad;
+      octx.fill();
+    });
+
+    // Blit offscreen → main canvas with gaussian blur for soft diffusion
+    ctx.filter = `blur(${BLUR_PX}px)`;
+    ctx.drawImage(off, 0, 0);
+    ctx.filter = 'none';
+
+    raf = requestAnimationFrame(frame);
+  }
+
+  window.addEventListener('mousemove', e => {
+    tmx = e.clientX / W; tmy = e.clientY / H;
+  });
+  window.addEventListener('touchmove', e => {
+    if (e.touches.length) {
+      tmx = e.touches[0].clientX / W;
+      tmy = e.touches[0].clientY / H;
+    }
+  }, { passive: true });
+  window.addEventListener('resize', () => {
+    cancelAnimationFrame(raf);
+    resize();
+    raf = requestAnimationFrame(frame);
+  });
+
+  resize();
+  raf = requestAnimationFrame(frame);
+
+})();
+</script>
+
+<script>
+// ─────────────────────────────────────────────────────────
+// SCAN EFFECT + PARTICLE TRAIL
+//
+// Scan: invisible line travels bottom→top over CYCLE_MS.
+// As it crosses each [data-scan] element, border flares.
+//
+// Particles: on each box fire, a burst of small dots spawns
+// along the box's top edge, drifts upward with slight wobble,
+// and fades out — like energy escaping as the scan passes through.
+// ─────────────────────────────────────────────────────────
+(function () {
+
+  const CYCLE_MS   = 5000;
+  const LIT_MS     = 340;
+  const FADE_MS    = 900;
+
+  // ── PARTICLE TUNING ───────────────────────────────────
+  const P_COUNT       = 18;    // particles per box fire
+  const P_RADIUS_MIN  = 1.5;   // dot radius min (px)
+  const P_RADIUS_MAX  = 3.5;   // dot radius max (px)
+  const P_SPEED_MIN   = 0.6;   // upward drift speed min (px/frame)
+  const P_SPEED_MAX   = 2.2;   // upward drift speed max (px/frame)
+  const P_WOBBLE      = 0.4;   // horizontal wobble amplitude (px/frame)
+  const P_LIFE_MIN    = 55;    // frames alive min
+  const P_LIFE_MAX    = 110;   // frames alive max
+  const P_OPACITY     = 0.7;   // peak opacity
+  // ──────────────────────────────────────────────────────
+
+  // Particle canvas
+  const pc  = document.getElementById('particle-canvas');
+  const pctx = pc.getContext('2d');
+  let PW, PH;
+
+  function resizeParticleCanvas() {
+    PW = pc.width  = window.innerWidth;
+    PH = pc.height = window.innerHeight;
+  }
+  resizeParticleCanvas();
+  window.addEventListener('resize', resizeParticleCanvas);
+
+  // Active particles pool
+  let particles = [];
+
+  function spawnParticles(el, colour) {
+    const rect  = el.getBoundingClientRect();
+    const scrollY = window.scrollY;
+
+    // Spawn along the top edge of the element (viewport coords)
+    const topY  = rect.top;           // viewport y
+    const leftX = rect.left;
+    const width = rect.width;
+
+    // Colour values
+    const rgb = colour === 'pink' ? '255,20,147' : '0,212,255';
+
+    for (let i = 0; i < P_COUNT; i++) {
+      // Spread across the top edge with slight vertical scatter
+      const x   = leftX + Math.random() * width;
+      const y   = topY  + (Math.random() - 0.5) * 10;
+      const r   = P_RADIUS_MIN + Math.random() * (P_RADIUS_MAX - P_RADIUS_MIN);
+      const vy  = -(P_SPEED_MIN + Math.random() * (P_SPEED_MAX - P_SPEED_MIN)); // upward
+      const vx  = (Math.random() - 0.5) * P_WOBBLE * 2;
+      const life = Math.floor(P_LIFE_MIN + Math.random() * (P_LIFE_MAX - P_LIFE_MIN));
+
+      particles.push({ x, y, r, vx, vy, life, maxLife: life, rgb });
+    }
+  }
+
+  // Particle render loop — runs on its own rAF
+  function particleFrame() {
+    pctx.clearRect(0, 0, PW, PH);
+
+    particles = particles.filter(p => p.life > 0);
+
+    particles.forEach(p => {
+      // Ease-out opacity: full at birth, fades as life depletes
+      const progress = p.life / p.maxLife;          // 1 → 0
+      const opacity  = P_OPACITY * progress * progress; // quadratic fade
+
+      pctx.beginPath();
+      pctx.arc(p.x, p.y, p.r * progress, 0, Math.PI * 2); // shrink as fades
+      pctx.fillStyle = `rgba(${p.rgb},${opacity.toFixed(3)})`;
+      pctx.fill();
+
+      // Drift
+      p.x  += p.vx;
+      p.y  += p.vy;
+      p.vx += (Math.random() - 0.5) * 0.08; // slight random wobble
+      p.life--;
+    });
+
+    requestAnimationFrame(particleFrame);
+  }
+  particleFrame();
+
+  // ── SCAN LOGIC (unchanged from electric2) ─────────────
+  let scanTargets = [];
+
+  function collectTargets() {
+    scanTargets = Array.from(document.querySelectorAll('[data-scan]')).map(el => ({
+      el,
+      colour: el.dataset.scan,
+      lastFired: -Infinity,
+    }));
+  }
+
+  function getScanY(ts) {
+    const t = (ts % CYCLE_MS) / CYCLE_MS;
+    const docH = document.documentElement.scrollHeight;
+    return docH * (1 - t);
+  }
+
+  function frame(ts) {
+    const scanY   = getScanY(ts);
+    const scrollY = window.scrollY;
+
+    scanTargets.forEach(target => {
+      const { el, colour } = target;
+      const rect = el.getBoundingClientRect();
+      const elCentreDoc = scrollY + rect.top + rect.height * 0.5;
+      const dist = Math.abs(scanY - elCentreDoc);
+      const cooldown = CYCLE_MS * 0.9;
+
+      if (dist < 60 && (ts - target.lastFired) > cooldown) {
+        target.lastFired = ts;
+        light(el, colour);
+        spawnParticles(el, colour);  // ← particle burst on fire
+      }
+    });
+
+    requestAnimationFrame(frame);
+  }
+
+  function light(el, colour) {
+    el.classList.remove('scan-lit-pink', 'scan-lit-cyan', 'scan-fade');
+    void el.offsetWidth;
+    el.classList.add(colour === 'pink' ? 'scan-lit-pink' : 'scan-lit-cyan');
+    setTimeout(() => {
+      el.classList.add('scan-fade');
+      el.classList.remove('scan-lit-pink', 'scan-lit-cyan');
+      setTimeout(() => el.classList.remove('scan-fade'), FADE_MS + 50);
+    }, LIT_MS);
+  }
+
+  collectTargets();
+  window.addEventListener('resize', collectTargets);
+  requestAnimationFrame(frame);
+
+})();
+</script>
+
+</body>
+</html>
