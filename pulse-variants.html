@@ -822,48 +822,22 @@ body.variant-c .hero-headline-c { display: block; }
 body:not(.variant-b):not(.variant-c) .hero-badge { display: none; }
 body:not(.variant-b):not(.variant-c) .pulse-tagline { display: flex; }
 
-/* ── BUTTON PULSE SWEEP ── */
-/* A heartbeat pulse: bright sharp flash at the leading edge,
-   decelerating and fading as it disperses rightward.
-   The gradient is front-weighted — nearly all light at the left
-   edge, long transparent tail stretching right. Combined with
-   an extreme ease-out, the flash fires instantly then bleeds away. */
+/* ── BUTTON INK DROP ── */
+/* A radial pulse blooms from wherever the cursor enters the button —
+   like a drop of ink dispersing in water. Originates at mouse coords,
+   expands outward, fades as it reaches the edges. Drawn on a per-button
+   canvas via JS so it originates precisely at the entry point. */
 .btn-primary, .nav-cta {
   position: relative;
   overflow: hidden;
 }
-.btn-primary::after, .nav-cta::after {
-  content: '';
+.btn-ripple-canvas {
   position: absolute;
-  top: -10%;
-  left: -80%;
-  width: 60%;
-  height: 120%;
-  /* Front-loaded: peak brightness at the very left edge (5%),
-     long fade into nothing. This is the comet tail shape. */
-  background: linear-gradient(
-    90deg,
-    rgba(255,255,255,0.55)  0%,
-    rgba(255,255,255,0.35)  5%,
-    rgba(255,255,255,0.12) 25%,
-    rgba(255,255,255,0.04) 55%,
-    rgba(255,255,255,0)   100%
-  );
+  inset: 0;
+  width: 100%;
+  height: 100%;
   pointer-events: none;
-}
-.btn-primary.pulsing::after, .nav-cta.pulsing::after {
-  animation: btn-sweep 1.4s cubic-bezier(0.05, 0.7, 0.1, 1.0) forwards;
-}
-@keyframes btn-sweep {
-  /* cubic-bezier(0.05, 0.7, 0.1, 1.0): extreme ease-out.
-     The flash covers most of its distance in the first 15%
-     of the duration, then barely drifts for the remaining 85%.
-     Opacity peaks early and fades through the second half —
-     so the bright head disappears as the tail disperses. */
-  0%   { transform: translateX(0%);   opacity: 0;   }
-  4%   { opacity: 1;                               }
-  30%  { opacity: 0.6;                             }
-  100% { transform: translateX(320%); opacity: 0;   }
+  border-radius: inherit;
 }
 
 </style>
@@ -1435,25 +1409,116 @@ function setVariant(v) {
   });
 }
 
-// ── BUTTON PULSE SWEEP ───────────────────────────────────────
-// On hover: a single wave of light passes left→right through
-// the button. One-shot — can't re-fire until animation finishes
-// and mouse has left and re-entered.
-document.querySelectorAll('.btn-primary, .nav-cta').forEach(btn => {
-  let ready = true;
-  btn.addEventListener('mouseenter', () => {
-    if (!ready) return;
-    ready = false;
-    btn.classList.add('pulsing');
-    btn.addEventListener('animationend', () => {
-      btn.classList.remove('pulsing');
-    }, { once: true });
-  });
-  btn.addEventListener('mouseleave', () => {
-    // Allow re-trigger only after leaving
-    setTimeout(() => { ready = true; }, 80);
-  });
-});
+// ── BUTTON INK DROP ──────────────────────────────────────────
+// On mouseenter: a radial pulse blooms from the cursor entry point,
+// expanding and fading like ink dropped into water — slow-motion,
+// organic, dispersing outward from origin.
+//
+// Each button gets a canvas overlay. On enter, we record the
+// cursor position relative to the button, then animate an
+// expanding radial gradient ring that fades as it grows.
+// The expansion uses an ease-out curve: fast initial bloom,
+// long slow dispersion to the edges.
+
+(function () {
+  const DURATION  = 1800;   // ms — total dispersion time
+  const MAX_SCALE = 2.8;    // how far the ring expands (× button diagonal)
+  const PEAK_AT   = 0.08;   // fraction of duration when opacity peaks
+
+  function initButton(btn) {
+    // Create a canvas overlay sized to the button
+    const cvs = document.createElement('canvas');
+    cvs.className = 'btn-ripple-canvas';
+    btn.appendChild(cvs);
+
+    const ctx = cvs.getContext('2d');
+    let W, H, raf, startTs, ox, oy, diagonal;
+
+    function resize() {
+      const r = btn.getBoundingClientRect();
+      W = cvs.width  = r.width;
+      H = cvs.height = r.height;
+      diagonal = Math.sqrt(W * W + H * H);
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    // Ease-out curve: maps linear t (0→1) to eased position (0→1)
+    // cubic ease-out — fast bloom, long dispersal tail
+    function easeOut(t) {
+      return 1 - Math.pow(1 - t, 3);
+    }
+
+    function frame(ts) {
+      const elapsed = ts - startTs;
+      const t = Math.min(elapsed / DURATION, 1);
+      const eased = easeOut(t);
+
+      ctx.clearRect(0, 0, W, H);
+
+      // Radius grows from 0 to MAX_SCALE × diagonal
+      const radius = eased * diagonal * MAX_SCALE;
+
+      // Opacity: rises sharply to peak, then fades slowly
+      // — like the ink drop expanding and thinning
+      let opacity;
+      if (t < PEAK_AT) {
+        opacity = t / PEAK_AT;                          // fast rise
+      } else {
+        opacity = 1 - ((t - PEAK_AT) / (1 - PEAK_AT)); // slow fade
+        opacity = Math.pow(opacity, 1.6);               // ease the fade
+      }
+      // Scale down overall so it's elegant not intense
+      opacity *= 0.22;
+
+      // Radial gradient: bright tight centre, long transparent edge
+      // Mimics the ink drop — dense at origin, dispersing outward
+      const grad = ctx.createRadialGradient(ox, oy, 0, ox, oy, radius);
+      grad.addColorStop(0,    `rgba(255,255,255,${(opacity * 1.8).toFixed(3)})`);
+      grad.addColorStop(0.15, `rgba(255,255,255,${(opacity * 1.2).toFixed(3)})`);
+      grad.addColorStop(0.5,  `rgba(255,255,255,${(opacity * 0.5).toFixed(3)})`);
+      grad.addColorStop(1,    `rgba(255,255,255,0)`);
+
+      ctx.beginPath();
+      ctx.arc(ox, oy, Math.max(radius, 1), 0, Math.PI * 2);
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      if (t < 1) {
+        raf = requestAnimationFrame(frame);
+      } else {
+        ctx.clearRect(0, 0, W, H);
+      }
+    }
+
+    let ready = true;
+
+    btn.addEventListener('mouseenter', (e) => {
+      if (!ready) return;
+      ready = false;
+
+      // Cancel any in-progress animation
+      if (raf) cancelAnimationFrame(raf);
+
+      // Get cursor position relative to button
+      const rect = btn.getBoundingClientRect();
+      ox = e.clientX - rect.left;
+      oy = e.clientY - rect.top;
+
+      startTs = null;
+      raf = requestAnimationFrame(ts => {
+        startTs = ts;
+        frame(ts);
+      });
+    });
+
+    btn.addEventListener('mouseleave', () => {
+      setTimeout(() => { ready = true; }, 100);
+    });
+  }
+
+  document.querySelectorAll('.btn-primary, .nav-cta').forEach(initButton);
+})();
 </script>
 
 </body>
