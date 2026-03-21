@@ -823,10 +823,11 @@ body:not(.variant-b):not(.variant-c) .hero-badge { display: none; }
 body:not(.variant-b):not(.variant-c) .pulse-tagline { display: flex; }
 
 /* ── BUTTON PULSE SWEEP ── */
-/* A soft wave of light sweeps left→right through the button.
-   Uses translateX on a wide gradient overlay — reliable cross-browser.
-   The gradient is wider than the button so entry/exit are gradual.
-   Long ease-out cubic-bezier = fast lead, slow settling tail. */
+/* A heartbeat pulse: bright sharp flash at the leading edge,
+   decelerating and fading as it disperses rightward.
+   The gradient is front-weighted — nearly all light at the left
+   edge, long transparent tail stretching right. Combined with
+   an extreme ease-out, the flash fires instantly then bleeds away. */
 .btn-primary, .nav-cta {
   position: relative;
   overflow: hidden;
@@ -835,33 +836,34 @@ body:not(.variant-b):not(.variant-c) .pulse-tagline { display: flex; }
   content: '';
   position: absolute;
   top: -10%;
-  left: -120%;        /* starts fully off-screen left */
-  width: 80%;         /* narrower than button = visible travel distance */
+  left: -80%;
+  width: 60%;
   height: 120%;
-  /* Soft elliptical light beam — bright centre, long soft edges */
+  /* Front-loaded: peak brightness at the very left edge (5%),
+     long fade into nothing. This is the comet tail shape. */
   background: linear-gradient(
     90deg,
-    rgba(255,255,255,0)    0%,
-    rgba(255,255,255,0.08) 20%,
-    rgba(255,255,255,0.26) 50%,
-    rgba(255,255,255,0.08) 80%,
-    rgba(255,255,255,0)    100%
+    rgba(255,255,255,0.55)  0%,
+    rgba(255,255,255,0.35)  5%,
+    rgba(255,255,255,0.12) 25%,
+    rgba(255,255,255,0.04) 55%,
+    rgba(255,255,255,0)   100%
   );
-  transform: skewX(-12deg); /* slight forward lean — looks like motion */
   pointer-events: none;
-  border-radius: 0;
 }
 .btn-primary.pulsing::after, .nav-cta.pulsing::after {
-  animation: btn-sweep 1.2s cubic-bezier(0.18, 0.58, 0.35, 1) forwards;
+  animation: btn-sweep 1.4s cubic-bezier(0.05, 0.7, 0.1, 1.0) forwards;
 }
 @keyframes btn-sweep {
-  /* translateX moves the overlay from left:-120% to right:+220%
-     The easing curve: snappy start, long gentle glide to the right.
-     Opacity fades out in the last 30% so it dissolves as it exits. */
-  0%   { transform: translateX(0%)    skewX(-12deg); opacity: 0;   }
-  5%   { opacity: 1; }
-  70%  { opacity: 0.8; }
-  100% { transform: translateX(280%)  skewX(-12deg); opacity: 0;   }
+  /* cubic-bezier(0.05, 0.7, 0.1, 1.0): extreme ease-out.
+     The flash covers most of its distance in the first 15%
+     of the duration, then barely drifts for the remaining 85%.
+     Opacity peaks early and fades through the second half —
+     so the bright head disappears as the tail disperses. */
+  0%   { transform: translateX(0%);   opacity: 0;   }
+  4%   { opacity: 1;                               }
+  30%  { opacity: 0.6;                             }
+  100% { transform: translateX(320%); opacity: 0;   }
 }
 
 </style>
