@@ -817,9 +817,14 @@ body.variant-c .hero-badge { display: none; }
 body.variant-c .hero-headline-default { display: none; }
 body.variant-c .hero-headline-c { display: block; }
 
+/* Variant D: badge + Pulse. headline (C with badge) */
+body.variant-d .hero-badge { display: inline-flex; }
+body.variant-d .hero-headline-default { display: none; }
+body.variant-d .hero-headline-c { display: block; }
+
 /* Default (variant-a on load) */
-body:not(.variant-b):not(.variant-c) .hero-badge { display: none; }
-body:not(.variant-b):not(.variant-c) .pulse-tagline { display: flex; }
+body:not(.variant-b):not(.variant-c):not(.variant-d) .hero-badge { display: none; }
+body:not(.variant-b):not(.variant-c):not(.variant-d) .pulse-tagline { display: flex; }
 
 /* ── BUTTON INK DROP ── */
 /* A radial pulse blooms from wherever the cursor enters the button —
@@ -1030,6 +1035,7 @@ body:not(.variant-b):not(.variant-c) .pulse-tagline { display: flex; }
   <button class="vbtn active" id="vbtn-a" onclick="setVariant('a')">A — Badge replaced</button>
   <button class="vbtn" id="vbtn-b" onclick="setVariant('b')">B — Between lines</button>
   <button class="vbtn" id="vbtn-c" onclick="setVariant('c')">C — Is the headline</button>
+  <button class="vbtn" id="vbtn-d" onclick="setVariant('d')">D — Badge + headline</button>
 </div>
 
 
@@ -1584,7 +1590,7 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
 function setVariant(v) {
   document.body.className = document.body.className
     .replace(/variant-[abc]/g, '').trim() + ' variant-' + v;
-  ['a','b','c'].forEach(id => {
+  ['a','b','c','d'].forEach(id => {
     document.getElementById('vbtn-' + id).classList.toggle('active', id === v);
   });
 }
