@@ -830,6 +830,7 @@ body:not(.variant-b):not(.variant-c) .pulse-tagline { display: flex; }
 .btn-primary, .nav-cta {
   position: relative;
   overflow: hidden;
+  will-change: filter;
 }
 .btn-ripple-canvas {
   position: absolute;
@@ -843,6 +844,18 @@ body:not(.variant-b):not(.variant-c) .pulse-tagline { display: flex; }
 </style>
 </head>
 <body class="variant-a">
+
+<!-- Ink warp displacement filter -->
+<svg width="0" height="0" style="position:absolute;pointer-events:none">
+  <defs>
+    <filter id="ink-warp" x="-20%" y="-20%" width="140%" height="140%">
+      <feTurbulence id="ink-turb" type="turbulence"
+        baseFrequency="0.012 0.018" numOctaves="2" seed="5" result="turb"/>
+      <feDisplacementMap id="ink-disp" in="SourceGraphic" in2="turb"
+        scale="0" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </defs>
+</svg>
 
 <!-- Variant toggle bar -->
 <div class="variant-bar">
@@ -1449,6 +1462,17 @@ function setVariant(v) {
       return 1 - Math.pow(1 - t, 3);
     }
 
+    // Warp: SVG displacement filter scale, driven in sync with light
+    // Peak scale = 14 (mid-strength warp), same ease-out curve
+    const WARP_MAX   = 14;
+    const dispMap    = document.getElementById('ink-disp');
+
+    function setWarp(scale) {
+      if (dispMap) dispMap.setAttribute('scale', scale.toFixed(2));
+      // Apply filter to this button only
+      btn.style.filter = scale > 0.1 ? 'url(#ink-warp)' : '';
+    }
+
     function frame(ts) {
       const elapsed = ts - startTs;
       const t = Math.min(elapsed / DURATION, 1);
@@ -1468,11 +1492,21 @@ function setVariant(v) {
         opacity = 1 - ((t - PEAK_AT) / (1 - PEAK_AT)); // slow fade
         opacity = Math.pow(opacity, 1.6);               // ease the fade
       }
-      // Scale down overall so it's elegant not intense
       opacity *= 0.22;
 
-      // Radial gradient: bright tight centre, long transparent edge
-      // Mimics the ink drop — dense at origin, dispersing outward
+      // Warp scale: same bell curve as opacity but slightly delayed peak
+      // so the distortion lingers a fraction after the light peak
+      let warpT;
+      const WARP_PEAK = PEAK_AT * 1.6;
+      if (t < WARP_PEAK) {
+        warpT = t / WARP_PEAK;
+      } else {
+        warpT = 1 - ((t - WARP_PEAK) / (1 - WARP_PEAK));
+        warpT = Math.pow(warpT, 1.4);
+      }
+      setWarp(warpT * WARP_MAX);
+
+      // Radial gradient bloom
       const grad = ctx.createRadialGradient(ox, oy, 0, ox, oy, radius);
       grad.addColorStop(0,    `rgba(255,255,255,${(opacity * 1.8).toFixed(3)})`);
       grad.addColorStop(0.15, `rgba(255,255,255,${(opacity * 1.2).toFixed(3)})`);
@@ -1488,6 +1522,7 @@ function setVariant(v) {
         raf = requestAnimationFrame(frame);
       } else {
         ctx.clearRect(0, 0, W, H);
+        setWarp(0);
       }
     }
 
