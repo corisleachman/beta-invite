@@ -596,7 +596,7 @@ nav {
   box-shadow: 0 0 32px var(--glow-pink);
   letter-spacing: 0.02em;
 }
-.btn-submit:hover { transform: translateY(-1px); box-shadow: 0 4px 40px var(--glow-pink); }
+.btn-submit:hover { box-shadow: 0 4px 40px var(--glow-pink); }
 .form-note { font-size: 12px; color: var(--td); }
 
 /* Success state */
@@ -718,7 +718,7 @@ footer {
    like a drop of ink dispersing in water. Originates at mouse coords,
    expands outward, fades as it reaches the edges. Drawn on a per-button
    canvas via JS so it originates precisely at the entry point. */
-.btn-primary, .nav-cta {
+.btn-primary, .nav-cta, .btn-ghost, .btn-submit {
   position: relative;
   overflow: hidden;
 }
@@ -930,7 +930,7 @@ footer {
     <p class="hero-sub">For people who win work through conversations. A calmer system for staying consistent.</p>
     <div class="hero-actions">
       <div class="btn-ring-wrap"><a href="#access" class="btn-primary">Request early access →</a></div>
-      <a href="#how" class="btn-ghost">See how it works</a>
+      <div class="btn-ring-wrap"><a href="#how" class="btn-ghost">See how it works</a></div>
     </div>
     <p class="hero-note">Join the first 100 beta users · No spam · Just occasional updates</p>
   </section>
@@ -1146,7 +1146,7 @@ footer {
               </select>
             </div>
             <div class="form-submit-wrap">
-              <button type="submit" id="submit-btn" class="btn-submit">Request early access →</button>
+              <div class="btn-ring-wrap"><button type="submit" id="submit-btn" class="btn-submit">Request early access →</button></div>
               <p class="form-note">No spam. Just occasional updates as the beta develops.</p>
             </div>
           </div>
@@ -1554,7 +1554,7 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
     });
   }
 
-  document.querySelectorAll('.btn-primary, .nav-cta').forEach(initButton);
+  document.querySelectorAll('.btn-primary, .nav-cta, .btn-ghost, .btn-submit').forEach(initButton);
 })();
 </script>
 
