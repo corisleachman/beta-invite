@@ -864,6 +864,160 @@ body:not(.variant-b):not(.variant-c) .pulse-tagline { display: flex; }
   border-radius: inherit;
 }
 
+
+/* ══════════════════════════════════════════════════════════
+   RESPONSIVE — TABLET (≤768px) + MOBILE (≤480px)
+   ══════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+
+  /* ── Containers ── */
+  .container, .container-sm {
+    padding: 0 20px;
+  }
+
+  /* ── Variant bar — smaller, wraps ── */
+  .variant-bar {
+    height: auto;
+    padding: 8px 12px;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  nav { top: auto !important; }
+  .hero { padding-top: 140px !important; }
+
+  /* ── Nav ── */
+  nav {
+    padding: 16px 20px;
+  }
+  .nav-cta {
+    padding: 8px 16px;
+    font-size: 12px;
+  }
+
+  /* ── Hero ── */
+  .hero {
+    padding: 100px 20px 60px;
+  }
+  .hero-actions {
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+  }
+  .btn-primary, .btn-ring-wrap {
+    width: 100%;
+    justify-content: center;
+  }
+  .btn-ghost {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* ── Problem section ── */
+  .problem-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  /* ── Steps — stack vertically, fix border radius ── */
+  .steps-grid {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+  .step-card:first-child { border-radius: 16px 16px 0 0; }
+  .step-card:last-child  { border-radius: 0 0 16px 16px; }
+
+  /* ── Features ── */
+  .features-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  .features-right {
+    padding: 24px;
+  }
+
+  /* ── Screen cards — 2 columns on tablet ── */
+  .screens-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  /* ── Access form ── */
+  .access-inner {
+    padding: 32px 24px;
+  }
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* ── Founder ── */
+  .founder-inner {
+    padding: 32px 24px;
+  }
+  .founder-quote {
+    font-size: 22px;
+  }
+
+  /* ── Footer ── */
+  footer {
+    padding: 24px 20px;
+  }
+
+  /* ── Section padding ── */
+  .section, .steps, .features, .screens, .access, .founder {
+    padding: 60px 0;
+  }
+
+}
+
+@media (max-width: 480px) {
+
+  /* ── Screen cards — single column on phones ── */
+  .screens-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* ── Variant bar — hide labels, smaller buttons ── */
+  .variant-label {
+    display: none;
+  }
+  .vbtn {
+    font-size: 10px;
+    padding: 4px 10px;
+  }
+
+  /* ── Hero headline size ── */
+  .hero {
+    padding: 100px 20px 48px;
+  }
+
+  /* ── Callout cards ── */
+  .callout-card {
+    padding: 20px;
+  }
+
+  /* ── Step cards ── */
+  .step-card {
+    padding: 20px;
+  }
+
+  /* ── Access ── */
+  .access-inner {
+    padding: 24px 16px;
+  }
+
+  /* ── Founder ── */
+  .founder-inner {
+    padding: 24px 16px;
+  }
+  .founder-avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 12px;
+  }
+
+}
+
 </style>
 </head>
 <body class="variant-a">
