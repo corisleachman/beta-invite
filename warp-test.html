@@ -23,9 +23,11 @@ h1 {
   color: var(--tm); margin-bottom: 48px;
 }
 .grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 900px;
+  margin: 0 auto;
 }
 .warp-card {
   position: relative;
@@ -108,7 +110,7 @@ h1 {
   const WAVE_AMPLITUDE = 6;    // px displacement at peak (vertical shift)
   const WAVE_FREQUENCY = 2.5;  // wave cycles visible across the image
   const WAVE_FRONT_WIDTH = 0.35; // fraction of image width the active band spans
-  const DURATION       = 1800; // ms for the wave to cross
+  const DURATION       = 3600; // ms for the wave to cross
   const PEAK_AT        = 0.15; // fraction of duration at peak amplitude
 
   function easeOut(t) { return 1 - Math.pow(1 - t, 3); }
