@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* Exact OG dimensions */
+body {
+  width: 1200px;
+  height: 630px;
+  overflow: hidden;
+  background: #0d0914;
+  font-family: 'Outfit', sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Noise texture */
+body::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  opacity: 0.35;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Orbs */
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.orb-1 {
+  width: 700px; height: 700px;
+  background: #ff1493;
+  filter: blur(160px);
+  opacity: 0.10;
+  top: -300px; right: -150px;
+}
+.orb-2 {
+  width: 600px; height: 600px;
+  background: #00d4ff;
+  filter: blur(160px);
+  opacity: 0.09;
+  bottom: -250px; left: -150px;
+}
+
+.content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 0 80px;
+  gap: 0;
+}
+
+.logo {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 900;
+  font-size: 200px;
+  line-height: 0.88;
+  letter-spacing: -0.05em;
+  color: #f4f4f2;
+  white-space: nowrap;
+}
+
+.logo .dot {
+  background: linear-gradient(135deg, #ff1493, #00d4ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.tagline {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 300;
+  letter-spacing: 0.01em;
+  color: rgba(244,244,242,0.55);
+  white-space: nowrap;
+  /* Font size calculated to match logo width exactly */
+  font-size: 40.5px;
+  margin-top: 12px;
+}
+
+/* Subtle gradient line at bottom */
+.grad-line {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(255,20,147,0.4), rgba(0,212,255,0.4), transparent);
+}
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;900&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+
+  <div class="content">
+    <div class="logo">Pulse<span class="dot">.</span></div>
+    <div class="tagline">The heartbeat of outreach.</div>
+  </div>
+
+  <div class="grad-line"></div>
+
+  <script>
+    // Auto-size tagline to match logo width exactly
+    window.addEventListener('load', () => {
+      const logo = document.querySelector('.logo');
+      const tagline = document.querySelector('.tagline');
+      const logoW = logo.getBoundingClientRect().width;
+      
+      let size = 40;
+      tagline.style.fontSize = size + 'px';
+      
+      // Binary search for exact fit
+      let lo = 10, hi = 80;
+      for (let i = 0; i < 20; i++) {
+        const mid = (lo + hi) / 2;
+        tagline.style.fontSize = mid + 'px';
+        const w = tagline.getBoundingClientRect().width;
+        if (w < logoW) lo = mid;
+        else hi = mid;
+      }
+      tagline.style.fontSize = lo + 'px';
+    });
+  </script>
+</body>
+</html>
