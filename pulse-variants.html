@@ -1409,61 +1409,28 @@ function setVariant(v) {
   });
 }
 
-// ── BUTTON INK DROP + TRAVELLING RIPPLE WARP ────────────────
-//
-// Two layered effects, both originating from the mouse entry point
-// and expanding outward together:
-//
-// 1. LIGHT BLOOM — radial gradient that blooms from origin,
-//    fades as it disperses. (Same as before.)
-//
-// 2. TRAVELLING WARP — a pixel-displacement ripple that lives
-//    at the expanding ring front. We snapshot the button's rendered
-//    pixels, then for each frame redraw them with a radial
-//    displacement: pixels near the current ring radius get pushed
-//    outward, pixels far from it are unaffected. The effect travels
-//    with the ring — it's not on the whole button, it's only where
-//    the wave currently is.
-//
-// The warp canvas sits beneath the light canvas and uses
-// drawImage + pixel manipulation to shift button pixels radially.
-
+// ── BUTTON INK DROP ──────────────────────────────────────────
+// Radial bloom from cursor entry point — like ink in water.
+// No warp. Clean, elegant, disperses from origin.
 (function () {
-  const DURATION    = 8800;  // ms total
-  const MAX_SCALE   = 2.8;   // ring expands to this × diagonal
-  const PEAK_AT     = 0.08;  // light opacity peak (fraction of duration)
-  const WARP_WIDTH  = 0.18;  // ring band width as fraction of current radius
-  const WARP_PEAK   = 6;     // max pixel displacement at ring front (px)
+  const DURATION  = 1800;
+  const MAX_SCALE = 2.8;
+  const PEAK_AT   = 0.08;
 
-  function easeOut(t) { return 1 - Math.pow(1 - t, 7); } // extreme ease-out: fires instantly, very long tail
+  function easeOut(t) { return 1 - Math.pow(1 - t, 3); }
 
   function initButton(btn) {
-    // Two canvases: warp (bottom) + light bloom (top)
-    const warpCvs  = document.createElement('canvas');
-    const lightCvs = document.createElement('canvas');
-    warpCvs.className  = 'btn-ripple-canvas';
-    lightCvs.className = 'btn-ripple-canvas';
-    warpCvs.style.zIndex  = '0';
-    lightCvs.style.zIndex = '1';
-    btn.appendChild(warpCvs);
-    btn.appendChild(lightCvs);
-
-    const wctx = warpCvs.getContext('2d');
-    const lctx = lightCvs.getContext('2d');
-
-    // Offscreen canvas to snapshot the button background
-    const snapCvs = document.createElement('canvas');
-    const sctx    = snapCvs.getContext('2d');
-
+    const cvs = document.createElement('canvas');
+    cvs.className = 'btn-ripple-canvas';
+    btn.appendChild(cvs);
+    const ctx = cvs.getContext('2d');
     let W, H, diagonal, raf, startTs, ox, oy;
 
     function resize() {
-      const r   = btn.getBoundingClientRect();
-      W         = Math.round(r.width);
-      H         = Math.round(r.height);
-      diagonal  = Math.sqrt(W * W + H * H);
-      warpCvs.width  = lightCvs.width  = snapCvs.width  = W;
-      warpCvs.height = lightCvs.height = snapCvs.height = H;
+      const r = btn.getBoundingClientRect();
+      W = cvs.width  = r.width;
+      H = cvs.height = r.height;
+      diagonal = Math.sqrt(W * W + H * H);
     }
     resize();
     window.addEventListener('resize', resize);
@@ -1474,8 +1441,7 @@ function setVariant(v) {
       const eased   = easeOut(t);
       const radius  = eased * diagonal * MAX_SCALE;
 
-      // ── LIGHT BLOOM ───────────────────────────────────────────
-      lctx.clearRect(0, 0, W, H);
+      ctx.clearRect(0, 0, W, H);
 
       let opacity;
       if (t < PEAK_AT) {
@@ -1483,132 +1449,26 @@ function setVariant(v) {
       } else {
         opacity = Math.pow(1 - (t - PEAK_AT) / (1 - PEAK_AT), 1.6);
       }
-      // Taper: as the ring expands outward, the trailing coverage
-      // reduces — distant parts of the button get progressively less light.
-      // eased goes 0→1, so (1 - eased) starts at 1 and drops to 0.
-      // We soften it with sqrt so it doesn't vanish too quickly.
-      const distanceFade = Math.sqrt(1 - Math.min(eased, 1));
-      opacity *= 0.28 * distanceFade;
+      opacity *= 0.22;
 
-      const grad = lctx.createRadialGradient(ox, oy, 0, ox, oy, radius);
-      grad.addColorStop(0,    `rgba(255,255,255,${(opacity*1.8).toFixed(3)})`);
-      grad.addColorStop(0.15, `rgba(255,255,255,${(opacity*1.2).toFixed(3)})`);
-      grad.addColorStop(0.5,  `rgba(255,255,255,${(opacity*0.5).toFixed(3)})`);
+      const grad = ctx.createRadialGradient(ox, oy, 0, ox, oy, radius);
+      grad.addColorStop(0,    `rgba(255,255,255,${(opacity * 1.8).toFixed(3)})`);
+      grad.addColorStop(0.15, `rgba(255,255,255,${(opacity * 1.2).toFixed(3)})`);
+      grad.addColorStop(0.5,  `rgba(255,255,255,${(opacity * 0.5).toFixed(3)})`);
       grad.addColorStop(1,    `rgba(255,255,255,0)`);
-      lctx.beginPath();
-      lctx.arc(ox, oy, Math.max(radius, 1), 0, Math.PI * 2);
-      lctx.fillStyle = grad;
-      lctx.fill();
-
-      // ── TRAVELLING WARP ───────────────────────────────────────
-      // Only run while radius is meaningful and warp is visible
-      wctx.clearRect(0, 0, W, H);
-
-      if (radius > 2 && t < 0.85) {
-        // Warp intensity — bell curve peaking around t=0.12,
-        // fades faster than light so distortion leads the bloom
-        let warpIntensity;
-        const WPEAK = 0.12;
-        if (t < WPEAK) {
-          warpIntensity = t / WPEAK;
-        } else {
-          warpIntensity = Math.pow(1 - (t - WPEAK) / (1 - WPEAK), 2.2);
-        }
-
-        const bandW    = radius * WARP_WIDTH;  // width of the ripple band
-        const innerR   = radius - bandW;
-        const outerR   = radius + bandW * 0.5;
-        const maxDisp  = WARP_PEAK * warpIntensity;
-
-        if (maxDisp > 0.3 && outerR > 0) {
-          // Sample button pixels and displace radially at the ring front
-          // We draw the button's gradient background then shift pixels
-          // near the ring outward, fading displacement away from the band
-
-          // Draw the base button appearance into snap
-          sctx.clearRect(0, 0, W, H);
-
-          // Reconstruct button gradient background on snap canvas
-          const bgGrad = sctx.createLinearGradient(0, 0, W, H * 0.7);
-          bgGrad.addColorStop(0, '#ff1493');
-          bgGrad.addColorStop(1, '#00d4ff');
-          sctx.fillStyle = bgGrad;
-          // Rounded rect clip
-          const r8 = H / 2;
-          sctx.beginPath();
-          sctx.roundRect(0, 0, W, H, r8);
-          sctx.fill();
-
-          const imgData = sctx.getImageData(0, 0, W, H);
-          const src     = imgData.data;
-          const outData = sctx.createImageData(W, H);
-          const dst     = outData.data;
-
-          for (let py = 0; py < H; py++) {
-            for (let px = 0; px < W; px++) {
-              const dx   = px - ox;
-              const dy   = py - oy;
-              const dist = Math.sqrt(dx * dx + dy * dy);
-
-              // How close is this pixel to the ring front?
-              const ringDist = dist - radius;
-              let dispAmt = 0;
-
-              if (dist > 1 && ringDist > -bandW && ringDist < bandW * 0.5) {
-                // Smooth falloff across the band — gaussian-ish
-                const bandT   = (ringDist + bandW) / (bandW * 1.5);
-                const bandFac = Math.sin(bandT * Math.PI); // 0→1→0 across band
-                dispAmt = bandFac * maxDisp;
-              }
-
-              // Source pixel: sample from inward (pulled toward origin)
-              let sx = px, sy = py;
-              if (dispAmt > 0 && dist > 1) {
-                const nx = dx / dist;
-                const ny = dy / dist;
-                // Push pixels outward at the ring front
-                sx = Math.round(px - nx * dispAmt);
-                sy = Math.round(py - ny * dispAmt);
-                sx = Math.max(0, Math.min(W - 1, sx));
-                sy = Math.max(0, Math.min(H - 1, sy));
-              }
-
-              const si = (sy * W + sx) * 4;
-              const di = (py * W + px) * 4;
-              dst[di]     = src[si];
-              dst[di + 1] = src[si + 1];
-              dst[di + 2] = src[si + 2];
-              dst[di + 3] = src[si + 3];
-            }
-          }
-
-          wctx.putImageData(outData, 0, 0);
-
-          // Mask to button shape (clip the warp to the ring band only)
-          wctx.save();
-          wctx.globalCompositeOperation = 'destination-in';
-          // Ring band mask — only show displaced pixels near the ring
-          const maskGrad = wctx.createRadialGradient(ox, oy, Math.max(0, innerR - bandW * 0.5), ox, oy, outerR + bandW * 0.3);
-          maskGrad.addColorStop(0,    'rgba(0,0,0,0)');
-          maskGrad.addColorStop(0.3,  'rgba(0,0,0,1)');
-          maskGrad.addColorStop(0.7,  'rgba(0,0,0,1)');
-          maskGrad.addColorStop(1,    'rgba(0,0,0,0)');
-          wctx.fillStyle = maskGrad;
-          wctx.fillRect(0, 0, W, H);
-          wctx.restore();
-        }
-      }
+      ctx.beginPath();
+      ctx.arc(ox, oy, Math.max(radius, 1), 0, Math.PI * 2);
+      ctx.fillStyle = grad;
+      ctx.fill();
 
       if (t < 1) {
         raf = requestAnimationFrame(frame);
       } else {
-        lctx.clearRect(0, 0, W, H);
-        wctx.clearRect(0, 0, W, H);
+        ctx.clearRect(0, 0, W, H);
       }
     }
 
     let ready = true;
-
     btn.addEventListener('mouseenter', (e) => {
       if (!ready) return;
       ready = false;
@@ -1619,7 +1479,6 @@ function setVariant(v) {
       startTs = null;
       raf = requestAnimationFrame(ts => { startTs = ts; frame(ts); });
     });
-
     btn.addEventListener('mouseleave', () => {
       setTimeout(() => { ready = true; }, 100);
     });
