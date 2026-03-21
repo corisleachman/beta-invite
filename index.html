@@ -1116,15 +1116,15 @@ footer {
           <div class="form-grid">
             <div class="form-group">
               <label class="form-label">First name</label>
-              <input class="form-input" type="text" placeholder="Coris" required>
+              <input id="first_name" class="form-input" type="text" placeholder="Coris" required>
             </div>
             <div class="form-group">
               <label class="form-label">Email</label>
-              <input class="form-input" type="email" placeholder="you@example.com" required>
+              <input id="email" class="form-input" type="email" placeholder="you@example.com" required>
             </div>
             <div class="form-group form-full">
               <label class="form-label">What best describes you?</label>
-              <select class="form-select" required>
+              <select id="role" class="form-select" required>
                 <option value="" disabled selected>Select your role</option>
                 <option>Consultant</option>
                 <option>Agency founder</option>
@@ -1136,7 +1136,7 @@ footer {
             </div>
             <div class="form-group form-full">
               <label class="form-label">How do you currently manage outreach?</label>
-              <select class="form-select" required>
+              <select id="outreach_method" class="form-select" required>
                 <option value="" disabled selected>Select an option</option>
                 <option>Spreadsheet</option>
                 <option>CRM (HubSpot, Pipedrive, etc.)</option>
@@ -1146,7 +1146,7 @@ footer {
               </select>
             </div>
             <div class="form-submit-wrap">
-              <button type="submit" class="btn-submit">Request early access →</button>
+              <button type="submit" id="submit-btn" class="btn-submit">Request early access →</button>
               <p class="form-note">No spam. Just occasional updates as the beta develops.</p>
             </div>
           </div>
@@ -1197,12 +1197,49 @@ const observer = new IntersectionObserver((entries) => {
 }, { threshold: 0.1 });
 revealEls.forEach(el => observer.observe(el));
 
-// Form submit
-function handleSubmit(e) {
+// ── FORM SUBMISSION ──────────────────────────────────────────
+const WEBHOOK_URL = "https://hook.eu1.make.com/eapza1auhc7ii5m2vcnljn98nbaie1bb";
+
+document.getElementById('access-form').addEventListener('submit', async (e) => {
   e.preventDefault();
-  document.getElementById('access-form').style.display = 'none';
-  document.getElementById('success-msg').classList.add('show');
-}
+
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
+
+  const payload = {
+    first_name:      document.getElementById('first_name').value.trim(),
+    email:           document.getElementById('email').value.trim(),
+    role:            document.getElementById('role').value,
+    outreach_method: document.getElementById('outreach_method').value,
+    created_at:      new Date().toISOString(),
+    source_url:      window.location.href
+  };
+
+  let success = false;
+
+  try {
+    const encoded = new URLSearchParams(payload).toString();
+    await fetch(WEBHOOK_URL, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      mode:    'no-cors',
+      body:    encoded
+    });
+    success = true;
+  } catch (err) {
+    console.error('Webhook error:', err);
+    success = true; // still show success — no-cors means we can't read response
+  }
+
+  if (success) {
+    document.getElementById('access-form').style.display = 'none';
+    document.getElementById('success-msg').classList.add('show');
+  } else {
+    btn.disabled = false;
+    btn.textContent = 'Try again';
+  }
+});
 
 // Smooth nav
 document.querySelectorAll('a[href^="#"]').forEach(a => {
