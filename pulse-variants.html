@@ -831,6 +831,26 @@ body:not(.variant-b):not(.variant-c) .pulse-tagline { display: flex; }
   position: relative;
   overflow: hidden;
 }
+
+/* Pulse ring — expands from button border on hover entry */
+.btn-primary::before, .nav-cta::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 2px solid rgba(255,255,255,0.6);
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(1);
+}
+.btn-primary.ring-pulse::before, .nav-cta.ring-pulse::before {
+  animation: btn-ring 1.1s cubic-bezier(0.2, 0.6, 0.3, 1) forwards;
+}
+@keyframes btn-ring {
+  0%   { transform: scale(1.0);  opacity: 0;    }
+  5%   { opacity: 0.55;                         }
+  100% { transform: scale(1.55); opacity: 0;    }
+}
 .btn-ripple-canvas {
   position: absolute;
   inset: 0;
@@ -1478,6 +1498,14 @@ function setVariant(v) {
       oy = e.clientY - rect.top;
       startTs = null;
       raf = requestAnimationFrame(ts => { startTs = ts; frame(ts); });
+
+      // Pulse ring — fires once on entry
+      btn.classList.remove('ring-pulse');
+      void btn.offsetWidth; // force reflow to restart animation
+      btn.classList.add('ring-pulse');
+      btn.addEventListener('animationend', () => {
+        btn.classList.remove('ring-pulse');
+      }, { once: true });
     });
     btn.addEventListener('mouseleave', () => {
       setTimeout(() => { ready = true; }, 100);
