@@ -1429,13 +1429,13 @@ function setVariant(v) {
 // drawImage + pixel manipulation to shift button pixels radially.
 
 (function () {
-  const DURATION    = 5200;  // ms total
+  const DURATION    = 8800;  // ms total
   const MAX_SCALE   = 2.8;   // ring expands to this × diagonal
   const PEAK_AT     = 0.08;  // light opacity peak (fraction of duration)
   const WARP_WIDTH  = 0.18;  // ring band width as fraction of current radius
   const WARP_PEAK   = 6;     // max pixel displacement at ring front (px)
 
-  function easeOut(t) { return 1 - Math.pow(1 - t, 3); }
+  function easeOut(t) { return 1 - Math.pow(1 - t, 7); } // extreme ease-out: fires instantly, very long tail
 
   function initButton(btn) {
     // Two canvases: warp (bottom) + light bloom (top)
@@ -1483,7 +1483,12 @@ function setVariant(v) {
       } else {
         opacity = Math.pow(1 - (t - PEAK_AT) / (1 - PEAK_AT), 1.6);
       }
-      opacity *= 0.22;
+      // Taper: as the ring expands outward, the trailing coverage
+      // reduces — distant parts of the button get progressively less light.
+      // eased goes 0→1, so (1 - eased) starts at 1 and drops to 0.
+      // We soften it with sqrt so it doesn't vanish too quickly.
+      const distanceFade = Math.sqrt(1 - Math.min(eased, 1));
+      opacity *= 0.28 * distanceFade;
 
       const grad = lctx.createRadialGradient(ox, oy, 0, ox, oy, radius);
       grad.addColorStop(0,    `rgba(255,255,255,${(opacity*1.8).toFixed(3)})`);
