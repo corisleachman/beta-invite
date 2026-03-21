@@ -92,6 +92,36 @@ body::before {
   margin-top: 12px;
 }
 
+.cta-row {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  margin-top: 36px;
+  width: 100%;
+  justify-content: space-between;
+}
+.cta-desc {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 300;
+  font-size: 22px;
+  color: rgba(244,244,242,0.5);
+  line-height: 1.4;
+  max-width: 680px;
+}
+.cta-btn {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 700;
+  font-size: 22px;
+  padding: 16px 36px;
+  background: linear-gradient(135deg, #ff1493, #00d4ff);
+  color: white;
+  border-radius: 100px;
+  white-space: nowrap;
+  letter-spacing: 0.01em;
+  box-shadow: 0 0 40px rgba(255,20,147,0.3);
+  flex-shrink: 0;
+}
+
 /* Subtle gradient line at bottom */
 .grad-line {
   position: absolute;
@@ -109,6 +139,10 @@ body::before {
   <div class="content">
     <div class="logo">Pulse<span class="dot">.</span></div>
     <div class="tagline">The heartbeat of outreach.</div>
+    <div class="cta-row">
+      <div class="cta-desc">A calmer system for consistent outreach — for consultants, agencies &amp; freelancers.</div>
+      <div class="cta-btn">Join the beta →</div>
+    </div>
   </div>
 
   <div class="grad-line"></div>
