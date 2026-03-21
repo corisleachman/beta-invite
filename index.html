@@ -1,1089 +1,1227 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Invite-only beta — a calmer system for outreach, consistently, with ease</title>
-  <meta name="description" content="A simple, lightweight outreach system for consultants, agency founders and operators who win work through conversations. Invite-only beta." />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pulse. — Invite-only beta</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+/* ── TOKENS ── */
+:root {
+  --bg:    #0d0914;
+  --s:     rgba(255,255,255,0.04);
+  --s2:    rgba(255,255,255,0.07);
+  --b:     rgba(255,255,255,0.07);
+  --b2:    rgba(255,255,255,0.13);
+  --t:     #f4f4f2;
+  --tm:    #a8a8b8;
+  --td:    #6b6b80;
+  --pink:  #ff1493;
+  --cyan:  #00d4ff;
+  --green: #64dc78;
+  --amber: #ff9d42;
+  --grad:  linear-gradient(135deg, #ff1493, #00d4ff);
+  --grad-text: linear-gradient(135deg, #ff1493 0%, #00d4ff 100%);
+  --glow-pink: rgba(255,20,147,0.25);
+  --glow-cyan: rgba(0,212,255,0.2);
+}
 
-  <!-- Google Fonts: Instrument Serif (display) + DM Sans (body) -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  <style>
-    /* ─── Reset & base ─── */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; }
 
-    :root {
-      --bg:        #F9F8F6;
-      --bg-warm:   #F2F0EC;
-      --ink:       #1A1916;
-      --ink-2:     #4A4845;
-      --ink-3:     #8A8784;
-      --accent:    #6B9E8E;
-      --accent-lt: #A8C9BE;
-      --border:    #E0DDD8;
-      --font-display: 'Instrument Serif', Georgia, serif;
-      --font-body:    'DM Sans', system-ui, sans-serif;
-    }
+body {
+  background: var(--bg);
+  color: var(--t);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
 
-    body {
-      font-family: var(--font-body);
-      background: var(--bg);
-      color: var(--ink);
-      -webkit-font-smoothing: antialiased;
-      overflow-x: hidden;
-    }
+/* ── SCAN EFFECT — subtle border breath ── */
+.callout-card,
+.step-card,
+.screen-card,
+.founder-inner,
+.access-inner {
+  transition: border-color 0.3s ease, box-shadow 0.3s ease,
+              background 0.2s ease, transform 0.2s ease;
+}
+.scan-lit-pink {
+  border-color: rgba(255, 20, 147, 0.35) !important;
+  box-shadow: 0 0 10px rgba(255, 20, 147, 0.10),
+              inset 0 0 8px rgba(255, 20, 147, 0.03) !important;
+}
+.scan-lit-cyan {
+  border-color: rgba(0, 212, 255, 0.35) !important;
+  box-shadow: 0 0 10px rgba(0, 212, 255, 0.10),
+              inset 0 0 8px rgba(0, 212, 255, 0.03) !important;
+}
+.scan-fade {
+  transition: border-color 1.4s ease, box-shadow 1.4s ease !important;
+}
 
-    /* ─── WebGL canvas ─── */
-    #pulse-canvas {
-      position: fixed;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 0;
-      opacity: 0.85;
-    }
+/* ── NOISE TEXTURE OVERLAY ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.4;
+}
 
-    /* ─── Layout shell ─── */
-    .page-wrap {
-      position: relative;
-      z-index: 1;
-    }
+/* ── BACKGROUND GLOW ORBS ── */
+.bg-orbs {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(140px);
+  opacity: 0.08;
+}
+.orb-1 { width: 600px; height: 600px; background: var(--pink); top: -200px; right: -100px; animation: drift1 18s ease-in-out infinite; }
+.orb-2 { width: 500px; height: 500px; background: var(--cyan);  bottom: 20%; left: -150px; animation: drift2 22s ease-in-out infinite; }
+.orb-3 { width: 400px; height: 400px; background: var(--amber); top: 40%; right: 15%; animation: drift3 26s ease-in-out infinite; opacity: 0.05; }
 
-    /* ─── Nav ─── */
-    nav {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      z-index: 100;
-      padding: 20px 48px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      background: rgba(249,248,246,0.7);
-      border-bottom: 1px solid transparent;
-      transition: border-color 0.3s;
-    }
-    nav.scrolled { border-color: var(--border); }
-    .nav-mark {
-      font-family: var(--font-display);
-      font-size: 17px;
-      color: var(--ink);
-      letter-spacing: 0.01em;
-    }
-    .nav-mark span { color: var(--ink-3); }
-    .nav-cta {
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--ink);
-      text-decoration: none;
-      padding: 8px 18px;
-      border: 1px solid var(--ink);
-      border-radius: 100px;
-      transition: background 0.2s, color 0.2s;
-    }
-    .nav-cta:hover { background: var(--ink); color: var(--bg); }
+@keyframes drift1 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-60px,80px)} }
+@keyframes drift2 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(80px,-60px)} }
+@keyframes drift3 { 0%,100%{transform:translate(0,0)} 33%{transform:translate(-40px,60px)} 66%{transform:translate(50px,-30px)} }
 
-    /* ─── Hero ─── */
-    .hero {
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 140px 24px 80px;
-    }
+/* ── LAYOUT ── */
+.wrap { position: relative; z-index: 1; }
+.container { max-width: 1100px; margin: 0 auto; padding: 0 40px; }
+.container-sm { max-width: 720px; margin: 0 auto; padding: 0 40px; }
 
-    .eyebrow {
-      display: inline-block;
-      font-size: 11px;
-      font-weight: 500;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: var(--accent);
-      background: rgba(107,158,142,0.1);
-      padding: 6px 14px;
-      border-radius: 100px;
-      border: 1px solid rgba(107,158,142,0.25);
-      margin-bottom: 36px;
-      opacity: 0;
-      animation: fadeUp 0.8s 0.2s ease forwards;
-    }
+/* ── NAV ── */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  padding: 20px 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(13,9,20,0.7);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--b);
+}
+.nav-logo {
+  font-family: 'Outfit', sans-serif;
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--t);
+  text-decoration: none;
+  letter-spacing: -0.03em;
+}
+.nav-logo span {
+  background: var(--grad-text);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.nav-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  background: var(--grad);
+  color: white;
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  border-radius: 100px;
+  transition: opacity 0.2s, transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 0 24px var(--glow-pink);
+}
+.nav-cta:hover { opacity: 0.9; box-shadow: 0 4px 32px var(--glow-pink); }
 
-    .hero-headline {
-      font-family: var(--font-display);
-      font-size: clamp(32px, 5vw, 56px);
-      line-height: 1.15;
-      letter-spacing: -0.02em;
-      color: var(--ink);
-      max-width: 600px;
-      margin-bottom: 8px;
-      opacity: 0;
-      animation: fadeUp 0.8s 0.35s ease forwards;
-    }
-    .hero-headline em {
-      font-style: italic;
-      color: var(--ink-2);
-    }
+/* ── HERO ── */
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 120px 40px 40px;
+}
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  border: 1px solid var(--b2);
+  border-radius: 100px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--cyan);
+  background: rgba(0,212,255,0.06);
+  margin-bottom: 36px;
+  animation: fadeUp 0.8s ease both;
+}
+.hero-badge::before {
+  content: '';
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--cyan);
+  box-shadow: 0 0 8px var(--cyan);
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
 
-    .hero-sub {
-      font-size: clamp(17px, 2.2vw, 21px);
-      font-weight: 300;
-      color: var(--ink-2);
-      max-width: 520px;
-      line-height: 1.5;
-      margin-bottom: 48px;
-      opacity: 0;
-      animation: fadeUp 0.8s 0.5s ease forwards;
-    }
+.hero-headline {
+  font-family: 'Outfit', sans-serif;
+  font-size: clamp(48px, 7vw, 88px);
+  font-weight: 900;
+  line-height: 1.0;
+  letter-spacing: -0.04em;
+  color: var(--t);
+  margin-bottom: 28px;
+  animation: fadeUp 0.8s 0.1s ease both;
+}
+.hero-headline .grad {
+  background: var(--grad-text);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.hero-sub {
+  font-size: 18px;
+  color: var(--tm);
+  max-width: 480px;
+  line-height: 1.65;
+  margin-bottom: 52px;
+  animation: fadeUp 0.8s 0.2s ease both;
+}
+.hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+  animation: fadeUp 0.8s 0.3s ease both;
+}
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 36px;
+  background: var(--grad);
+  color: white;
+  font-family: 'Outfit', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+  border-radius: 100px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 0 40px var(--glow-pink), 0 4px 20px rgba(0,0,0,0.4);
+  letter-spacing: 0.01em;
+}
+.btn-primary:hover { box-shadow: 0 0 60px var(--glow-pink), 0 8px 30px rgba(0,0,0,0.4); }
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 15px 28px;
+  background: transparent;
+  color: var(--tm);
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  border-radius: 100px;
+  border: 1px solid var(--b2);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-ghost:hover { color: var(--t); border-color: rgba(255,255,255,0.3); }
+.hero-note {
+  margin-top: 20px;
+  font-size: 12px;
+  color: var(--td);
+  animation: fadeUp 0.8s 0.4s ease both;
+}
 
-    .hero-body {
-      font-size: 17px;
-      line-height: 1.85;
-      color: var(--ink-3);
-      max-width: 460px;
-      margin-bottom: 52px;
-      opacity: 0;
-      animation: fadeUp 0.8s 0.65s ease forwards;
-    }
-    .hero-body p { margin-bottom: 0.6em; }
-    .hero-body p:last-child { margin-bottom: 0; }
+/* ── SECTION DIVIDER ── */
+.divider {
+  width: 1px;
+  height: 40px;
+  background: linear-gradient(to bottom, transparent, var(--b2), transparent);
+  margin: 0 auto;
+}
 
-    .hero-cta-group {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 14px;
-      opacity: 0;
-      animation: fadeUp 0.8s 0.8s ease forwards;
-    }
+/* ── PROBLEM SECTION ── */
+.section { padding: 72px 0; }
+.section-label {
+  font-family: 'Outfit', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--pink);
+  margin-bottom: 24px;
+}
+.section-headline {
+  font-family: 'Outfit', sans-serif;
+  font-size: clamp(32px, 4vw, 52px);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  color: var(--t);
+  margin-bottom: 24px;
+}
+.section-body {
+  font-size: 17px;
+  color: var(--tm);
+  line-height: 1.7;
+  max-width: 580px;
+}
+.section-body + .section-body { margin-top: 16px; }
 
-    .btn-primary {
-      display: inline-block;
-      font-size: 15px;
-      font-weight: 500;
-      color: var(--bg);
-      background: var(--ink);
-      padding: 14px 32px;
-      border-radius: 100px;
-      border: none;
-      cursor: pointer;
-      text-decoration: none;
-      transition: opacity 0.2s, transform 0.2s;
-      letter-spacing: 0.01em;
-    }
-    .btn-primary:hover { opacity: 0.85; transform: translateY(-1px); }
+/* Problem two-col */
+.problem-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: start;
+}
+.problem-right {
+  padding-top: 8px;
+}
+.callout-card {
+  background: var(--s);
+  border: 1px solid var(--b2);
+  border-radius: 16px;
+  padding: 28px;
+  margin-top: 32px;
+}
+.callout-card-label {
+  font-family: 'Outfit', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--cyan);
+  margin-bottom: 12px;
+}
+.callout-card-headline {
+  font-family: 'Outfit', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--t);
+  line-height: 1.25;
+  margin-bottom: 12px;
+  letter-spacing: -0.02em;
+}
+.callout-card-body {
+  font-size: 14px;
+  color: var(--tm);
+  line-height: 1.65;
+}
 
-    .spots-label {
-      font-size: 13px;
-      color: var(--ink-3);
-      letter-spacing: 0.02em;
-    }
-    .spots-label strong {
-      color: var(--accent);
-      font-weight: 500;
-    }
+/* ── HOW IT WORKS ── */
+.steps { padding: 72px 0; }
+.steps-header { text-align: center; margin-bottom: 72px; }
+.steps-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+}
+.step-card {
+  background: var(--s);
+  border: 1px solid var(--b);
+  padding: 40px 36px;
+  position: relative;
+  overflow: hidden;
+  transition: background 0.3s, border-color 0.3s;
+}
+.step-card:first-child { border-radius: 16px 0 0 16px; }
+.step-card:last-child  { border-radius: 0 16px 16px 0; }
+.step-card:hover { background: var(--s2); border-color: var(--b2); }
+.step-card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--grad);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.step-card:hover::after { opacity: 1; }
+.step-num {
+  font-family: 'Outfit', sans-serif;
+  font-size: 48px;
+  font-weight: 900;
+  background: var(--grad-text);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1;
+  margin-bottom: 20px;
+  letter-spacing: -0.04em;
+}
+.step-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--t);
+  letter-spacing: -0.02em;
+  margin-bottom: 12px;
+}
+.step-body { font-size: 14px; color: var(--tm); line-height: 1.65; }
 
-    .hero-micro {
-      font-size: 12.5px;
-      color: var(--ink-3);
-      max-width: 380px;
-      line-height: 1.6;
-    }
+/* ── FEATURES SECTION ── */
+.features { padding: 100px 0; }
+.features-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  align-items: start;
+}
+.features-left .section-body { margin-bottom: 40px; }
+.feature-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.feature-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 18px;
+  background: var(--s);
+  border: 1px solid var(--b);
+  border-radius: 10px;
+  transition: border-color 0.2s, background 0.2s;
+}
+.feature-item:hover { border-color: var(--b2); background: var(--s2); }
+.feature-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--grad);
+  flex-shrink: 0;
+  margin-top: 6px;
+  box-shadow: 0 0 8px var(--glow-pink);
+}
+.feature-text { font-size: 14px; color: var(--t); line-height: 1.5; }
+.feature-tag {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-left: 6px;
+}
+.tag-pro  { background: rgba(255,20,147,0.15); color: var(--pink); border: 1px solid rgba(255,20,147,0.2); }
+.tag-soon { background: rgba(0,212,255,0.1);   color: var(--cyan); border: 1px solid rgba(0,212,255,0.18); }
 
-    .hero-contrast {
-      font-size: 15px;
-      color: var(--ink-2);
-      margin: 28px 0 0;
-      line-height: 1.7;
-      border-top: 1px solid var(--border);
-      padding-top: 20px;
-    }
+/* What's included — right side panel */
+.included-panel {
+  background: var(--s);
+  border: 1px solid var(--b2);
+  border-radius: 16px;
+  padding: 32px;
+  position: sticky;
+  top: 100px;
+}
+.included-label {
+  font-family: 'Outfit', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--td);
+  margin-bottom: 20px;
+}
+.included-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.included-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  color: var(--tm);
+}
+.included-item .check {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: rgba(100,220,120,0.12);
+  border: 1px solid rgba(100,220,120,0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 10px;
+  color: var(--green);
+}
 
-    .hero-audience {
-      font-size: 15px;
-      color: var(--accent);
-      margin: 6px 0 28px;
-      font-weight: 500;
-      letter-spacing: 0.01em;
-    }
+/* ── SCREENS / WHAT IT LOOKS LIKE ── */
+.screens { padding: 100px 0; }
+.screens-header { text-align: center; margin-bottom: 60px; }
+.screens-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.screen-card {
+  background: var(--s);
+  border: 1px solid var(--b);
+  border-radius: 14px;
+  padding: 28px 24px;
+  transition: border-color 0.2s, transform 0.2s;
+  cursor: default;
+}
+.screen-card:hover { border-color: rgba(255,20,147,0.3); transform: translateY(-3px); }
+.screen-icon {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  background: var(--s2);
+  border: 1px solid var(--b2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  margin-bottom: 16px;
+}
+.screen-name {
+  font-family: 'Outfit', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--t);
+  letter-spacing: -0.01em;
+  margin-bottom: 8px;
+}
+.screen-desc { font-size: 13px; color: var(--tm); line-height: 1.55; }
 
-    .hero-statement {
-      font-size: clamp(22px, 4vw, 34px);
-      font-family: 'Instrument Serif', serif;
-      line-height: 1.25;
-      margin: 0 0 20px;
-      color: var(--ink);
-    }
+/* ── EARLY ACCESS FORM ── */
+.access { padding: 100px 0; }
+.access-inner {
+  background: var(--s);
+  border: 1px solid var(--b2);
+  border-radius: 24px;
+  padding: 64px;
+  position: relative;
+  overflow: hidden;
+}
+.access-inner::before {
+  content: '';
+  position: absolute;
+  top: -1px; left: 10%; right: 10%;
+  height: 1px;
+  background: var(--grad);
+  opacity: 0.6;
+}
+.access-header {
+  text-align: center;
+  margin-bottom: 48px;
+}
+.access-header .section-label { display: block; }
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+.form-full { grid-column: 1 / -1; }
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.form-label {
+  font-family: 'Outfit', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--td);
+}
+.form-input, .form-select {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--b2);
+  border-radius: 10px;
+  padding: 13px 16px;
+  color: var(--t);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s, background 0.2s;
+  width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.form-input:focus, .form-select:focus {
+  border-color: rgba(255,20,147,0.5);
+  background: rgba(255,20,147,0.04);
+}
+.form-input::placeholder { color: var(--td); }
+.form-select { cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b6b80' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
+.form-select option { background: #1a1028; color: var(--t); }
+.form-submit-wrap { grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 8px; }
+.btn-submit {
+  width: 100%;
+  padding: 16px;
+  background: var(--grad);
+  color: white;
+  font-family: 'Outfit', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  border: none;
+  border-radius: 100px;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 0 32px var(--glow-pink);
+  letter-spacing: 0.02em;
+}
+.btn-submit:hover { transform: translateY(-1px); box-shadow: 0 4px 40px var(--glow-pink); }
+.form-note { font-size: 12px; color: var(--td); }
 
-    .hero-statement em {
-      font-style: italic;
-      color: var(--accent);
-    }
+/* Success state */
+.success-msg {
+  display: none;
+  text-align: center;
+  padding: 40px;
+}
+.success-msg.show { display: block; }
+.success-icon { font-size: 40px; margin-bottom: 16px; }
+.success-headline {
+  font-family: 'Outfit', sans-serif;
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--t);
+  letter-spacing: -0.02em;
+  margin-bottom: 12px;
+}
+.success-body { font-size: 15px; color: var(--tm); }
 
-    /* ─── Divider ─── */
-    .section-divider {
-      width: 48px;
-      height: 1px;
-      background: var(--border);
-      margin: 0 auto 64px;
-    }
+/* ── FOUNDER NOTE ── */
+.founder { padding: 80px 0 120px; }
+.founder-inner {
+  display: flex;
+  gap: 48px;
+  align-items: flex-start;
+  max-width: 760px;
+  margin: 0 auto;
+}
+.founder-mark {
+  font-family: 'Outfit', sans-serif;
+  font-size: 80px;
+  font-weight: 900;
+  background: var(--grad-text);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: -8px;
+}
+.founder-body { font-size: 17px; color: var(--tm); line-height: 1.7; font-style: italic; }
+.founder-body strong { color: var(--t); font-style: normal; font-weight: 500; }
+.founder-sig {
+  margin-top: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.founder-avatar {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: var(--grad);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  color: white;
+  flex-shrink: 0;
+}
+.founder-name { font-size: 14px; color: var(--td); }
 
-    /* ─── Sections ─── */
-    section {
-      max-width: 680px;
-      margin: 0 auto;
-      padding: 80px 24px;
-    }
-    section.wide {
-      max-width: 1000px;
-    }
+/* ── FOOTER ── */
+footer {
+  border-top: 1px solid var(--b);
+  padding: 32px 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.footer-logo {
+  font-family: 'Outfit', sans-serif;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+.footer-logo span {
+  background: var(--grad-text);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.footer-note { font-size: 12px; color: var(--td); }
 
-    .section-label {
-      font-size: 11px;
-      font-weight: 500;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: var(--ink-3);
-      margin-bottom: 24px;
-    }
+/* ── ANIMATIONS ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.reveal {
+  opacity: 0;
+  transform: translateY(32px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
 
-    .section-headline {
-      font-family: var(--font-display);
-      font-size: clamp(28px, 4vw, 42px);
-      line-height: 1.2;
-      letter-spacing: -0.02em;
-      color: var(--ink);
-      margin-bottom: 28px;
-    }
-    .section-headline em { font-style: italic; color: var(--ink-2); }
+/* ── GRADIENT LINE ── */
+.grad-line {
+  height: 1px;
+  background: var(--grad);
+  opacity: 0.2;
+  margin: 0;
+}
 
-    .section-body {
-      font-size: 17px;
-      line-height: 1.85;
-      color: var(--ink-2);
-    }
-    .section-body p { margin-bottom: 1.1em; }
-    .section-body p:last-child { margin-bottom: 0; }
 
-    /* ─── Three-col insight ─── */
-    .insight-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 32px;
-      max-width: 1000px;
-      margin: 0 auto;
-      padding: 0 24px 100px;
-    }
-    @media (max-width: 720px) {
-      .insight-grid { grid-template-columns: 1fr; gap: 24px; }
-    }
 
-    .insight-card {
-      background: white;
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 32px 28px;
-      opacity: 0;
-      transform: translateY(20px);
-      transition: opacity 0.6s ease, transform 0.6s ease;
-    }
-    .insight-card.visible { opacity: 1; transform: translateY(0); }
-    .insight-card:nth-child(2) { transition-delay: 0.1s; }
-    .insight-card:nth-child(3) { transition-delay: 0.2s; }
+/* Variant D locked — badge + Pulse. headline */
+.pulse-tagline    { display: none; }
+.pulse-interstitial { display: none; }
+.hero-headline-c { display: block; }
 
-    .card-number {
-      font-family: var(--font-display);
-      font-size: 13px;
-      color: var(--accent);
-      margin-bottom: 16px;
-      letter-spacing: 0.05em;
-    }
-    .card-title {
-      font-family: var(--font-display);
-      font-size: 20px;
-      color: var(--ink);
-      margin-bottom: 12px;
-      line-height: 1.3;
-    }
-    .card-body {
-      font-size: 15px;
-      line-height: 1.75;
-      color: var(--ink-2);
-    }
+/* ── BUTTON INK DROP ── */
+/* A radial pulse blooms from wherever the cursor enters the button —
+   like a drop of ink dispersing in water. Originates at mouse coords,
+   expands outward, fades as it reaches the edges. Drawn on a per-button
+   canvas via JS so it originates precisely at the entry point. */
+.btn-primary, .nav-cta {
+  position: relative;
+  overflow: hidden;
+}
 
-    /* ─── Screenshots ─── */
-    .screenshots-section {
-      background: var(--bg-warm);
-      border-top: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
-      padding: 80px 24px;
-      overflow: hidden;
-    }
-    .screenshots-inner { max-width: 1100px; margin: 0 auto; }
-    .screenshots-header { text-align: center; margin-bottom: 56px; }
-    .screenshot-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 28px;
-      align-items: start;
-    }
-    @media (max-width: 760px) { .screenshot-grid { grid-template-columns: 1fr; } }
-    .screenshot-grid .screenshot-frame:nth-child(even) { margin-top: 48px; }
-    .screenshot-frame {
-      border-radius: 12px;
-      overflow: hidden;
-      border: 1px solid rgba(0,0,0,0.12);
-      box-shadow: 0 20px 60px rgba(0,0,0,0.10);
-      opacity: 0;
-      transform: translateY(24px);
-      transition: opacity 0.7s ease, transform 0.7s ease;
-      cursor: pointer;
-    }
-    .screenshot-frame.visible { opacity: 1; transform: translateY(0); }
-    .screenshot-frame img { width: 75%; display: block; margin: 0 auto; }
-    .screenshot-caption { padding: 16px 20px; background: white; border-top: 1px solid var(--border); }
-    .caption-title { font-size: 13px; font-weight: 500; color: var(--ink); margin-bottom: 4px; }
-    .caption-desc { font-size: 12px; color: var(--ink-3); line-height: 1.5; }
-    .lightbox-overlay {
-      display: none; position: fixed; inset: 0;
-      background: rgba(0,0,0,0.85); z-index: 9999;
-      align-items: center; justify-content: center;
-    }
-    .lightbox-overlay.active { display: flex; }
-    .lightbox-inner { position: relative; max-width: 90vw; max-height: 90vh; }
-    .lightbox-inner img { max-width: 90vw; max-height: 85vh; border-radius: 8px; display: block; object-fit: contain; }
-    .lightbox-close {
-      position: absolute; top: -40px; right: 0;
-      background: none; border: none; color: white;
-      font-size: 32px; cursor: pointer; line-height: 1; padding: 0; opacity: 0.8;
-    }
-    .lightbox-close:hover { opacity: 1; }
-    .lightbox-arrow {
-      position: absolute; top: 50%; transform: translateY(-50%);
-      background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25);
-      color: white; font-size: 28px; width: 48px; height: 64px;
-      border-radius: 6px; cursor: pointer; display: flex;
-      align-items: center; justify-content: center; transition: background 0.2s;
-    }
-    .lightbox-arrow:hover { background: rgba(255,255,255,0.3); }
-    .lightbox-prev { left: -64px; }
-    .lightbox-next { right: -64px; }
-    @media (max-width: 760px) { .lightbox-prev { left: -48px; } .lightbox-next { right: -48px; } }
-/* ─── System points ─── */
-    .system-points {
-      list-style: none;
-      margin-top: 32px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-    .system-points li {
-      display: flex;
-      align-items: flex-start;
-      gap: 14px;
-      font-size: 16px;
-      color: var(--ink-2);
-      line-height: 1.6;
-    }
-    .point-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: var(--accent);
-      flex-shrink: 0;
-      margin-top: 9px;
-    }
+/* Pulse ring wrapper — sits outside the button (not clipped by overflow:hidden) */
+.btn-ring-wrap {
+  position: relative;
+  display: inline-flex;
+}
+.btn-ring-wrap::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 100px; /* match button pill shape */
+  border: 1.5px solid rgba(255,255,255,0.55);
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(1);
+}
+.btn-ring-wrap.ring-pulse::after {
+  animation: btn-ring 1.2s cubic-bezier(0.2, 0.6, 0.3, 1) forwards;
+}
+@keyframes btn-ring {
+  0%   { transform: scale(1.0);  opacity: 0;   }
+  4%   { opacity: 0.44;                        }
+  100% { transform: scale(1.48); opacity: 0;   }
+}
+.btn-ripple-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  border-radius: inherit;
+}
 
-    /* ─── Form section ─── */
-    .form-section {
-      background: var(--ink);
-      color: white;
-      padding: 100px 24px;
-      text-align: center;
-    }
-    .form-inner {
-      max-width: 520px;
-      margin: 0 auto;
-    }
-    .form-eyebrow {
-      font-size: 11px;
-      font-weight: 500;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: var(--accent-lt);
-      margin-bottom: 24px;
-    }
-    .form-headline {
-      font-family: var(--font-display);
-      font-size: clamp(28px, 5vw, 44px);
-      line-height: 1.15;
-      letter-spacing: -0.02em;
-      margin-bottom: 16px;
-    }
-    .form-sub {
-      font-size: 16px;
-      line-height: 1.7;
-      color: rgba(255,255,255,0.6);
-      margin-bottom: 16px;
-    }
-    .spots-counter-form {
-      display: inline-block;
-      font-size: 13px;
-      color: var(--accent-lt);
-      background: rgba(107,158,142,0.15);
-      border: 1px solid rgba(107,158,142,0.3);
-      padding: 6px 16px;
-      border-radius: 100px;
-      margin-bottom: 48px;
-    }
-    .spots-counter-form span {
-      font-weight: 500;
-    }
 
-    .signup-form {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      text-align: left;
-    }
-    .form-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
-    }
-    @media (max-width: 500px) {
-      .form-row { grid-template-columns: 1fr; }
-    }
+/* ══════════════════════════════════════════════════════════
+   RESPONSIVE — TABLET (≤768px) + MOBILE (≤480px)
+   ══════════════════════════════════════════════════════════ */
 
-    .field-wrap {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    .field-wrap label {
-      font-size: 11px;
-      font-weight: 500;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: rgba(255,255,255,0.4);
-    }
-    .field-wrap input,
-    .field-wrap select {
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 10px;
-      padding: 13px 16px;
-      font-size: 15px;
-      font-family: var(--font-body);
-      color: white;
-      outline: none;
-      transition: border-color 0.2s, background 0.2s;
-      -webkit-appearance: none;
-    }
-    .field-wrap input::placeholder { color: rgba(255,255,255,0.25); }
-    .field-wrap select { cursor: pointer; }
-    .field-wrap select option { background: #2a2a2a; color: white; }
-    .field-wrap input:focus,
-    .field-wrap select:focus {
-      border-color: var(--accent-lt);
-      background: rgba(255,255,255,0.09);
-    }
+@media (max-width: 768px) {
 
-    .btn-submit {
-      width: 100%;
-      padding: 16px;
-      font-size: 15px;
-      font-weight: 500;
-      font-family: var(--font-body);
-      color: var(--ink);
-      background: white;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      margin-top: 8px;
-      transition: opacity 0.2s, transform 0.2s;
-      letter-spacing: 0.01em;
-    }
-    .btn-submit:hover { opacity: 0.9; transform: translateY(-1px); }
-    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  /* ── Containers ── */
+  .container, .container-sm {
+    padding: 0 20px;
+  }
 
-    .form-note {
-      font-size: 12px;
-      color: rgba(255,255,255,0.3);
-      text-align: center;
-      margin-top: 12px;
-    }
 
-    /* Success state */
-    .success-state {
-      display: none;
-      text-align: center;
-      padding: 48px 0;
-    }
-    .success-icon {
-      width: 56px;
-      height: 56px;
-      border-radius: 50%;
-      background: rgba(107,158,142,0.2);
-      border: 1px solid var(--accent-lt);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 24px;
-    }
-    .success-title {
-      font-family: var(--font-display);
-      font-size: 26px;
-      margin-bottom: 12px;
-    }
-    .success-body {
-      font-size: 15px;
-      color: rgba(255,255,255,0.55);
-      line-height: 1.7;
-      max-width: 340px;
-      margin: 0 auto;
-    }
 
-    /* ─── Founder note ─── */
-    .founder-section {
-      max-width: 600px;
-      margin: 0 auto;
-      padding: 100px 24px;
-      text-align: center;
-    }
-    .founder-avatar {
-      width: 48px;
-      height: 48px;
-      border-radius: 50%;
-      background: var(--border);
-      margin: 0 auto 28px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: var(--font-display);
-      font-size: 18px;
-      color: var(--ink-2);
-    }
-    .founder-quote {
-      font-family: var(--font-display);
-      font-size: clamp(20px, 3vw, 26px);
-      line-height: 1.5;
-      color: var(--ink);
-      margin-bottom: 28px;
-      font-style: italic;
-    }
-    .founder-body {
-      font-size: 16px;
-      line-height: 1.8;
-      color: var(--ink-2);
-      margin-bottom: 20px;
-    }
-    .founder-sig {
-      font-size: 13px;
-      color: var(--ink-3);
-    }
+  /* ── Nav ── */
+  nav {
+    padding: 16px 20px;
+  }
+  .nav-cta {
+    padding: 8px 16px;
+    font-size: 12px;
+  }
 
-    /* ─── Footer ─── */
-    footer {
-      border-top: 1px solid var(--border);
-      padding: 32px 48px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 13px;
-      color: var(--ink-3);
-      flex-wrap: wrap;
-      gap: 12px;
-    }
-    footer a { color: var(--ink-3); text-decoration: none; }
-    footer a:hover { color: var(--ink); }
+  /* ── Hero ── */
+  .hero {
+    padding: 56px 20px 40px;
+  }
+  .divider {
+    display: none;
+  }
+  .hero-actions {
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+  }
+  .btn-primary, .btn-ring-wrap {
+    width: 100%;
+    justify-content: center;
+  }
+  .btn-ghost {
+    width: 100%;
+    justify-content: center;
+  }
 
-    /* ─── Animations ─── */
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(16px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
+  /* ── Problem section ── */
+  .problem-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
 
-    .reveal {
-      opacity: 0;
-      transform: translateY(20px);
-      transition: opacity 0.7s ease, transform 0.7s ease;
-    }
-    .reveal.visible {
-      opacity: 1;
-      transform: translateY(0);
-    }
+  /* ── Steps — stack vertically, fix border radius ── */
+  .steps-grid {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+  .step-card:first-child { border-radius: 16px 16px 0 0; }
+  .step-card:last-child  { border-radius: 0 0 16px 16px; }
 
-    /* ─── Mobile ─── */
-    @media (max-width: 600px) {
-      nav { padding: 16px 20px; }
-      .hero { padding: 120px 20px 60px; }
-      footer { padding: 24px 20px; }
-    }
+  /* ── Features ── */
+  .features-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  .features-right {
+    padding: 24px;
+  }
 
-    .features-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px 48px;
-      margin-top: 40px;
-    }
-    @media (max-width: 600px) {
-      .features-grid { grid-template-columns: 1fr; }
-    }
-    .features-col {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-    .features-col li {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-size: 16px;
-      color: var(--ink-2);
-    }
-    .feat-check {
-      flex-shrink: 0;
-      width: 22px;
-      height: 22px;
-      border-radius: 50%;
-      background: var(--accent);
-      color: white;
-      font-size: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .feat-badge {
-      margin-left: auto;
-      font-size: 10px;
-      font-weight: 500;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: var(--accent);
-      border: 1px solid var(--accent-lt);
-      padding: 2px 7px;
-      border-radius: 20px;
-    }
-    .feat-badge--soon {
-      color: var(--ink-3);
-      border-color: var(--border);
-    }
-  </style>
+  /* ── Screen cards — 2 columns on tablet ── */
+  .screens-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  /* ── Access form ── */
+  .access-inner {
+    padding: 32px 24px;
+  }
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* ── Founder ── */
+  .founder-inner {
+    padding: 32px 24px;
+  }
+  .founder-quote {
+    font-size: 22px;
+  }
+
+  /* ── Footer ── */
+  footer {
+    padding: 24px 20px;
+  }
+
+  /* ── Section padding ── */
+  .section, .steps, .features, .screens, .access, .founder {
+    padding: 60px 0;
+  }
+
+}
+
+@media (max-width: 480px) {
+
+  /* ── Screen cards — single column on phones ── */
+  .screens-grid {
+    grid-template-columns: 1fr;
+  }
+
+
+
+  /* ── Hero headline size ── */
+  .hero {
+    padding: 48px 20px 32px;
+  }
+
+  /* ── Callout cards ── */
+  .callout-card {
+    padding: 20px;
+  }
+
+  /* ── Step cards ── */
+  .step-card {
+    padding: 20px;
+  }
+
+  /* ── Access ── */
+  .access-inner {
+    padding: 24px 16px;
+  }
+
+  /* ── Founder ── */
+  .founder-inner {
+    padding: 24px 16px;
+  }
+  .founder-avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 12px;
+  }
+
+}
+
+</style>
 </head>
+<body class="variant-d">
 
-<body>
 
-<!-- ─── WebGL Particle Canvas ─── -->
-<canvas id="pulse-canvas"></canvas>
+<canvas id="pulse-canvas" style="position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;"></canvas>
 
-<div class="page-wrap">
+<div class="bg-orbs">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+</div>
 
-  <!-- ─── Nav ─── -->
-  <nav id="main-nav">
-    <div class="nav-mark">outreach<span>.</span></div>
-    <a href="#early-access" class="nav-cta">Request access</a>
-  </nav>
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">Pulse<span>.</span></a>
+  <div class="btn-ring-wrap"><a href="#access" class="nav-cta">Request access →</a></div>
+</nav>
 
-  <!-- ═══════════════════════════════════════
-       HERO
-  ═══════════════════════════════════════ -->
+<div class="wrap">
+
+  <!-- HERO -->
   <section class="hero">
-    <div class="eyebrow">Invite-only beta</div>
+    <div class="hero-badge">Invite-only beta</div>
 
-    <h1 class="hero-headline">Outreach without the headache.<br />And that keeps you on track.</h1>
+    <h1 class="hero-headline">
+      <span class="grad">Pulse.</span><br>
+      The heartbeat of outreach.
+    </h1>
 
-    <p class="hero-audience">For people who win work through conversations.</p>
-
-    <div class="hero-statement">
-      <p>Outreach works.<br><em>Consistency breaks.</em></p>
+    <p class="hero-sub">For people who win work through conversations. A calmer system for staying consistent.</p>
+    <div class="hero-actions">
+      <div class="btn-ring-wrap"><a href="#access" class="btn-primary">Request early access →</a></div>
+      <a href="#how" class="btn-ghost">See how it works</a>
     </div>
-
-    <div class="hero-body">
-      <p>Most outreach doesn't fail because the message is bad.<br>It fails because follow-ups stop happening.</p>
-    </div>
-
-    <p class="hero-contrast" style="margin-bottom:12px;">Not a CRM.<br>Not a cold-email blaster.<br>Just a simple tool that keeps your outreach moving.</p>
-
-    <div class="hero-cta-group">
-      <a href="#early-access" class="btn-primary">Join the first 100 beta users</a>
-      <p class="form-note" style="margin-top:12px;">No spam. Just occasional updates as the beta develops.</p>
-    </div>
+    <p class="hero-note">Join the first 100 beta users · No spam · Just occasional updates</p>
   </section>
 
-  <div class="section-divider"></div>
+  <div class="divider"></div>
 
-  <!-- ═══════════════════════════════════════
-       PROBLEM
-  ═══════════════════════════════════════ -->
-  <section class="reveal">
-    <p class="section-label">The problem</p>
-    <h2 class="section-headline">Most outreach systems<br>are built <em>wrong.</em></h2>
-    <div class="section-body">
-      <p>They're built for sales teams with ops budgets. Pipelines, deal stages, dashboards, automation — all of it needs setting up, maintaining, and learning.</p>
-      <p>You open them and feel the weight of it before you've sent a single email.</p>
-      <p>Most people doing outreach don't need any of that. They just need something that keeps them on track.</p>
-    </div>
-  </section>
-
-  <div class="section-divider"></div>
-
-  <!-- ═══════════════════════════════════════
-       INSIGHT
-  ═══════════════════════════════════════ -->
-  <section class="reveal">
-    <p class="section-label">The real problem</p>
-    <h2 class="section-headline">It's not sending emails.<br><em>It's remembering the next one.</em></h2>
-    <div class="section-body">
-      <p>A quick follow-up. A small check-in. A friendly nudge.</p>
-      <p>Those small actions create conversations. And conversations create opportunity.</p>
-      <p>But only if they actually happen.</p>
-    </div>
-  </section>
-
-  <!-- ─── Three insight cards ─── -->
-  <div class="insight-grid">
-    <div class="insight-card">
-      <div class="card-number">01</div>
-      <div class="card-title">Import and review</div>
-      <div class="card-body">Bring in any prospect list. Review who's worth contacting. Every list has noise — this is where you cut it.</div>
-    </div>
-    <div class="insight-card">
-      <div class="card-number">02</div>
-      <div class="card-title">Send with intention</div>
-      <div class="card-body">Drafts are generated. You review and approve. Nothing sends without your eyes on it first.</div>
-    </div>
-    <div class="insight-card">
-      <div class="card-number">03</div>
-      <div class="card-title">Never lose momentum</div>
-      <div class="card-body">Follow-ups appear when they're due. Conversations surface automatically. The next step is always obvious.</div>
-    </div>
-  </div>
-
-  <div class="section-divider"></div>
-
-  <!-- ═══════════════════════════════════════
-       SYSTEM
-  ═══════════════════════════════════════ -->
-  <section class="reveal">
-    <p class="section-label">The system</p>
-    <h2 class="section-headline">An effortless system for<br><em>consistent outreach.</em></h2>
-    <div class="section-body">
-      <p>This tool does one thing. It stops your outreach from going quiet.</p>
-      <p>No pipelines. No confusing dashboards. No CRM to set up and maintain.</p>
-    </div>
-    <ul class="system-points">
-      <li><div class="point-dot"></div>Tracks who you've contacted and when</li>
-      <li><div class="point-dot"></div>Tells you what needs to happen next</li>
-      <li><div class="point-dot"></div>Makes the next action effortless, so momentum never disappears</li>
-      <li><div class="point-dot"></div>Surfaces conversations and replies in one place</li>
-      <li><div class="point-dot"></div>Suggests the right follow-up — value drop, check-in, or chase — at the right moment</li>
-    </ul>
-  </section>
-
-  <div class="section-divider"></div>
-
-    <!-- ═══════════════════════════════════════
-       FEATURES LIST
-  ═══════════════════════════════════════ -->
-  <section class="reveal">
-    <p class="section-label">What's included</p>
-    <h2 class="section-headline">Everything you need.<br><em>Nothing you don't.</em></h2>
-    <div class="features-grid">
-      <ul class="features-col">
-        <li><span class="feat-check">✓</span>Multiple campaigns &amp; prospect lists</li>
-        <li><span class="feat-check">✓</span>Gmail integration</li>
-        <li><span class="feat-check">✓</span>Auto-scheduled sending <span class="feat-badge">Pro</span></li>
-        <li><span class="feat-check">✓</span>AI-drafted emails <span class="feat-badge">Pro</span></li>
-        <li><span class="feat-check">✓</span>Follow-up queue &amp; reminders</li>
-      </ul>
-      <ul class="features-col">
-        <li><span class="feat-check">✓</span>Prospect status tracking</li>
-        <li><span class="feat-check">✓</span>One-click prospect qualification</li>
-        <li><span class="feat-check">✓</span>Your data stays yours</li>
-        <li><span class="feat-check">✓</span>Free tier to get started</li>
-        <li><span class="feat-check">✓</span>Microsoft Outlook <span class="feat-badge feat-badge--soon">Soon</span></li>
-      </ul>
-    </div>
-  </section>
-
-  <div class="section-divider"></div>
-
-  <!-- ═══════════════════════════════════════
-       SCREENSHOTS
-  ═══════════════════════════════════════ -->
-  <div class="screenshots-section">
-    <div class="screenshots-inner">
-      <div class="screenshots-header reveal">
-        <p class="section-label">What it looks like</p>
-        <h2 class="section-headline" style="margin-bottom:12px;">Simple by design.<br><em>Effortless by default.</em></h2>
-        <p style="font-size:16px;color:var(--ink-2);max-width:460px;margin:0 auto;line-height:1.7;">A dashboard designed around actions, not data. You always know what to do next.</p>
-      </div>
-      <div class="screenshot-grid">
-        <div class="screenshot-frame reveal" data-lb="0">
-          <img src="assets/screenshot-01.png" alt="Follow-up queue" loading="lazy">
-          <div class="screenshot-caption"><div class="caption-title">Follow-up queue</div><div class="caption-desc">See exactly who needs a reply and when.</div></div>
+  <!-- PROBLEM -->
+  <section class="section" id="problem">
+    <div class="container">
+      <div class="problem-grid reveal">
+        <div>
+          <div class="section-label">The problem</div>
+          <h2 class="section-headline">Most outreach systems are built wrong.</h2>
+          <p class="section-body">They're built for sales teams with ops budgets. Pipelines, deal stages, dashboards, automation — all of it needs setting up, maintaining, and learning.</p>
+          <p class="section-body">You open them and feel the weight of it before you've sent a single email. Most people doing outreach don't need any of that. They just need something that keeps them on track.</p>
         </div>
-        <div class="screenshot-frame reveal" data-lb="1">
-          <img src="assets/screenshot-02.png" alt="Prospect overview" loading="lazy">
-          <div class="screenshot-caption"><div class="caption-title">Prospect overview</div><div class="caption-desc">Every active conversation at a glance, with context already loaded.</div></div>
-        </div>
-        <div class="screenshot-frame reveal" data-lb="2">
-          <img src="assets/screenshot-03.png" alt="Connection pipeline" loading="lazy">
-          <div class="screenshot-caption"><div class="caption-title">Connection pipeline</div><div class="caption-desc">Track warm leads from first touch to booked call in one view.</div></div>
-        </div>
-        <div class="screenshot-frame reveal" data-lb="3">
-          <img src="assets/screenshot-04.png" alt="Prospect review" loading="lazy">
-          <div class="screenshot-caption"><div class="caption-title">Prospect review</div><div class="caption-desc">Review profiles and draft personalised outreach without switching tabs.</div></div>
-        </div>
-        <div class="screenshot-frame reveal" data-lb="4">
-          <img src="assets/screenshot-05.png" alt="Outreach dashboard" loading="lazy">
-          <div class="screenshot-caption"><div class="caption-title">Outreach dashboard</div><div class="caption-desc">Your daily outreach actions, surfaced and prioritised automatically.</div></div>
-        </div>
-        <div class="screenshot-frame reveal" data-lb="5">
-          <img src="assets/screenshot-06.png" alt="Message drafts" loading="lazy">
-          <div class="screenshot-caption"><div class="caption-title">Message drafts</div><div class="caption-desc">AI-assisted drafts that sound like you — ready to send in one click.</div></div>
-        </div>
-        <div class="screenshot-frame reveal" data-lb="6">
-          <img src="assets/screenshot-07.png" alt="Pulse overlay" loading="lazy">
-          <div class="screenshot-caption"><div class="caption-title">Pulse overlay</div><div class="caption-desc">Pulse surfaces key signals directly on LinkedIn.</div></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Lightbox -->
-  <div class="lightbox-overlay" id="lightbox" role="dialog" aria-modal="true">
-    <div class="lightbox-inner">
-      <button class="lightbox-close" id="lb-close" aria-label="Close">&times;</button>
-      <button class="lightbox-arrow lightbox-prev" id="lb-prev" aria-label="Previous">&#8249;</button>
-      <img id="lb-img" src="" alt="">
-      <button class="lightbox-arrow lightbox-next" id="lb-next" aria-label="Next">&#8250;</button>
-    </div>
-  </div>
-
-  <!-- ═══════════════════════════════════════
-       EARLY ACCESS FORM
-  ═══════════════════════════════════════ -->
-  <div class="form-section" id="early-access">
-    <div class="form-inner">
-      <p class="form-eyebrow">Early access</p>
-      <h2 class="form-headline">Request beta access</h2>
-      <p class="form-sub">The product is currently being tested with a small group of early users. People who already run outreach and want a calmer system for staying consistent.</p>
-
-      <form class="signup-form" id="signup-form">
-        <div class="form-row">
-          <div class="field-wrap">
-            <label for="first_name">First name</label>
-            <input type="text" id="first_name" name="first_name" placeholder="Your first name" required autocomplete="given-name" />
+        <div class="problem-right">
+          <div class="callout-card reveal">
+            <div class="callout-card-label">Outreach works.<br>Consistency breaks.</div>
+            <h3 class="callout-card-headline">Most outreach doesn't fail because the message is bad.</h3>
+            <p class="callout-card-body">It fails because follow-ups stop happening. A quick check-in. A friendly nudge. Those small actions create conversations. And conversations create opportunity. But only if they actually happen.</p>
           </div>
-          <div class="field-wrap">
-            <label for="email">Email</label>
-            <input type="email" id="email" name="email" placeholder="your@email.com" required autocomplete="email" />
+          <div class="callout-card reveal" data-scan="cyan" style="margin-top:16px;">
+            <div class="callout-card-label">The real problem</div>
+            <h3 class="callout-card-headline">It's not sending emails. It's remembering the next one.</h3>
+            <p class="callout-card-body">Not a CRM. Not a cold-email blaster. Just a simple tool that keeps your outreach moving.</p>
           </div>
         </div>
-        <div class="field-wrap">
-          <label for="role">What best describes you?</label>
-          <select id="role" name="role" required>
-            <option value="" disabled selected>Select your role</option>
-            <option value="consultant">Consultant</option>
-            <option value="agency_founder">Agency founder</option>
-            <option value="recruiter">Recruiter</option>
-            <option value="fractional_operator">Fractional operator</option>
-            <option value="business_development">Business development</option>
-            <option value="other">Other</option>
-          </select>
-        </div>
-        <div class="field-wrap">
-          <label for="outreach_method">How do you currently manage outreach?</label>
-          <select id="outreach_method" name="outreach_method" required>
-            <option value="" disabled selected>Select an option</option>
-            <option value="spreadsheet">Spreadsheet</option>
-            <option value="crm">CRM (HubSpot, Pipedrive, etc.)</option>
-            <option value="inbox_memory">Inbox + memory</option>
-            <option value="nothing">Nothing consistent yet</option>
-            <option value="other">Other</option>
-          </select>
-        </div>
-        <button type="submit" class="btn-submit" id="submit-btn">Request early access</button>
-        <p class="form-note">No spam. Just occasional updates as the beta develops.</p>
-      </form>
-
-      <!-- Success state shown after submission -->
-      <div class="success-state" id="success-state">
-        <div class="success-icon">
-          <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-            <path d="M5 11l4 4 8-8" stroke="#A8C9BE" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </div>
-        <div class="success-title">You're on the list.</div>
-        <p class="success-body">I'll be inviting people in small groups as the beta develops. Thanks for your interest — I'll be in touch.</p>
       </div>
     </div>
-  </div>
+  </section>
 
-  <!-- ═══════════════════════════════════════
-       FOUNDER NOTE
-  ═══════════════════════════════════════ -->
-  <div class="founder-section reveal">
-    <div class="founder-avatar">C</div>
-    <blockquote class="founder-quote">
-      "I built this because I was tired of juggling spreadsheets, reminders and half-finished outreach tools."
-    </blockquote>
-    <p class="founder-body">
-      I wanted something quieter. Something that simply keeps outreach moving without the overhead.
-    </p>
-    <p class="founder-body">
-      So I built it for myself first. Now I'm testing whether other people want it too.
-    </p>
-    <p class="founder-sig">— Coris, founder</p>
-  </div>
+  <div class="grad-line"></div>
 
-  <!-- ─── Footer ─── -->
-  <footer>
-    <div>A calmer system for outreach &mdash; Invite-only beta</div>
-    <div style="display:flex;gap:24px;">
-      <a href="#">Privacy</a>
-      <a href="#">Contact</a>
+  <!-- HOW IT WORKS -->
+  <section class="steps" id="how">
+    <div class="container">
+      <div class="steps-header reveal">
+        <div class="section-label" style="text-align:center;">How it works</div>
+        <h2 class="section-headline" style="text-align:center;max-width:500px;margin:0 auto;">Three steps. Then it runs itself.</h2>
+      </div>
+      <div class="steps-grid reveal">
+        <div class="step-card" data-scan="pink">
+          <div class="step-num">01</div>
+          <div class="step-title">Import and review</div>
+          <p class="step-body">Bring in any prospect list. Review who's worth contacting. Every list has noise — this is where you cut it.</p>
+        </div>
+        <div class="step-card" data-scan="cyan">
+          <div class="step-num">02</div>
+          <div class="step-title">Send with intention</div>
+          <p class="step-body">Drafts are generated. You review and approve. Nothing sends without your eyes on it first.</p>
+        </div>
+        <div class="step-card" data-scan="pink">
+          <div class="step-num">03</div>
+          <div class="step-title">Never lose momentum</div>
+          <p class="step-body">Follow-ups appear when they're due. Conversations surface automatically. The next step is always obvious.</p>
+        </div>
+      </div>
     </div>
-  </footer>
+  </section>
 
-</div><!-- /page-wrap -->
+  <div class="grad-line"></div>
 
+  <!-- FEATURES -->
+  <section class="features" id="features">
+    <div class="container">
+      <div class="features-grid">
+        <div class="features-left reveal">
+          <div class="section-label">The system</div>
+          <h2 class="section-headline">An effortless system for consistent outreach.</h2>
+          <p class="section-body">This tool does one thing. It stops your outreach from going quiet. No pipelines. No confusing dashboards. No CRM to set up and maintain.</p>
+          <div class="feature-list" style="margin-top:32px;">
+            <div class="feature-item">
+              <div class="feature-dot"></div>
+              <div class="feature-text">Tracks who you've contacted and when</div>
+            </div>
+            <div class="feature-item">
+              <div class="feature-dot"></div>
+              <div class="feature-text">Tells you what needs to happen next</div>
+            </div>
+            <div class="feature-item">
+              <div class="feature-dot"></div>
+              <div class="feature-text">Makes the next action effortless, so momentum never disappears</div>
+            </div>
+            <div class="feature-item">
+              <div class="feature-dot"></div>
+              <div class="feature-text">Surfaces conversations and replies in one place</div>
+            </div>
+            <div class="feature-item">
+              <div class="feature-dot"></div>
+              <div class="feature-text">Suggests the right follow-up — value drop, check-in, or chase — at the right moment</div>
+            </div>
+          </div>
+        </div>
+        <div class="reveal">
+          <div class="included-panel">
+            <div class="included-label">What's included</div>
+            <div class="included-list">
+              <div class="included-item"><div class="check">✓</div><span>Multiple campaigns &amp; prospect lists</span></div>
+              <div class="included-item"><div class="check">✓</div><span>Gmail integration</span></div>
+              <div class="included-item">
+                <div class="check">✓</div>
+                <span>Auto-scheduled sending <span class="feature-tag tag-pro">Pro</span></span>
+              </div>
+              <div class="included-item">
+                <div class="check">✓</div>
+                <span>AI-drafted emails <span class="feature-tag tag-pro">Pro</span></span>
+              </div>
+              <div class="included-item"><div class="check">✓</div><span>Follow-up queue &amp; reminders</span></div>
+              <div class="included-item"><div class="check">✓</div><span>Prospect status tracking</span></div>
+              <div class="included-item"><div class="check">✓</div><span>One-click prospect qualification</span></div>
+              <div class="included-item"><div class="check">✓</div><span>Your data stays yours</span></div>
+              <div class="included-item"><div class="check">✓</div><span>Free tier to get started</span></div>
+              <div class="included-item">
+                <div class="check" style="color:var(--cyan);background:rgba(0,212,255,0.08);border-color:rgba(0,212,255,0.2);">→</div>
+                <span>Microsoft Outlook <span class="feature-tag tag-soon">Soon</span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 
-<!-- ═══════════════════════════════════════
-     JAVASCRIPT
-═══════════════════════════════════════ -->
+  <div class="grad-line"></div>
+
+  <!-- WHAT IT LOOKS LIKE -->
+  <section class="screens" id="screens">
+    <div class="container">
+      <div class="screens-header reveal">
+        <div class="section-label" style="text-align:center;">What it looks like</div>
+        <h2 class="section-headline" style="text-align:center;">Simple by design.<br>Effortless by default.</h2>
+        <p style="color:var(--tm);font-size:16px;margin-top:16px;max-width:480px;margin-left:auto;margin-right:auto;">A dashboard designed around actions, not data. You always know what to do next.</p>
+      </div>
+      <div class="screens-grid reveal">
+        <div class="screen-card" data-scan="pink">
+          <div class="screen-icon">📋</div>
+          <div class="screen-name">Follow-up queue</div>
+          <p class="screen-desc">See exactly who needs a reply and when. Nothing gets missed.</p>
+        </div>
+        <div class="screen-card" data-scan="cyan">
+          <div class="screen-icon">👥</div>
+          <div class="screen-name">Prospect overview</div>
+          <p class="screen-desc">Every active conversation at a glance, with context already loaded.</p>
+        </div>
+        <div class="screen-card" data-scan="pink">
+          <div class="screen-icon">📈</div>
+          <div class="screen-name">Connection pipeline</div>
+          <p class="screen-desc">Track warm leads from first touch to booked call in one view.</p>
+        </div>
+        <div class="screen-card" data-scan="cyan">
+          <div class="screen-icon">🔍</div>
+          <div class="screen-name">Prospect review</div>
+          <p class="screen-desc">Review profiles and draft personalised outreach without switching tabs.</p>
+        </div>
+        <div class="screen-card" data-scan="pink">
+          <div class="screen-icon">⚡</div>
+          <div class="screen-name">Outreach dashboard</div>
+          <p class="screen-desc">Your daily outreach actions, surfaced and prioritised automatically.</p>
+        </div>
+        <div class="screen-card" data-scan="cyan">
+          <div class="screen-icon">✍️</div>
+          <div class="screen-name">Message drafts</div>
+          <p class="screen-desc">AI-assisted drafts that sound like you — ready to send in one click.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grad-line"></div>
+
+  <!-- ACCESS FORM -->
+  <section class="access" id="access">
+    <div class="container-sm">
+      <div class="access-inner reveal" data-scan="pink">
+        <div class="access-header">
+          <span class="section-label">Early access</span>
+          <h2 class="section-headline" style="margin-top:16px;">Request beta access</h2>
+          <p style="color:var(--tm);font-size:15px;margin-top:12px;max-width:460px;margin-left:auto;margin-right:auto;">The product is currently being tested with a small group of early users. People who already run outreach and want a calmer system for staying consistent.</p>
+        </div>
+
+        <form id="access-form" onsubmit="handleSubmit(event)">
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">First name</label>
+              <input class="form-input" type="text" placeholder="Coris" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email</label>
+              <input class="form-input" type="email" placeholder="you@example.com" required>
+            </div>
+            <div class="form-group form-full">
+              <label class="form-label">What best describes you?</label>
+              <select class="form-select" required>
+                <option value="" disabled selected>Select your role</option>
+                <option>Consultant</option>
+                <option>Agency founder</option>
+                <option>Recruiter</option>
+                <option>Fractional operator</option>
+                <option>Business development</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="form-group form-full">
+              <label class="form-label">How do you currently manage outreach?</label>
+              <select class="form-select" required>
+                <option value="" disabled selected>Select an option</option>
+                <option>Spreadsheet</option>
+                <option>CRM (HubSpot, Pipedrive, etc.)</option>
+                <option>Inbox + memory</option>
+                <option>Nothing consistent yet</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="form-submit-wrap">
+              <button type="submit" class="btn-submit">Request early access →</button>
+              <p class="form-note">No spam. Just occasional updates as the beta develops.</p>
+            </div>
+          </div>
+        </form>
+
+        <div class="success-msg" id="success-msg">
+          <div class="success-icon">✦</div>
+          <h3 class="success-headline">You're on the list.</h3>
+          <p class="success-body">I'll be inviting people in small groups as the beta develops.<br>Thanks for your interest — I'll be in touch.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOUNDER NOTE -->
+  <section class="founder">
+    <div class="container">
+      <div class="founder-inner reveal" data-scan="cyan">
+        <div class="founder-mark">"</div>
+        <div>
+          <p class="founder-body">I built this because I was tired of juggling spreadsheets, reminders and half-finished outreach tools. I wanted something <strong>quieter</strong>. Something that simply keeps outreach moving without the overhead. So I built it for myself first. Now I'm testing whether other people want it too.</p>
+          <div class="founder-sig">
+            <div class="founder-avatar">C</div>
+            <span class="founder-name">Coris — founder, Pulse.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div><!-- end wrap -->
+
+<footer>
+  <div class="footer-logo">Pulse<span>.</span></div>
+  <div class="footer-note">Invite-only beta · Built with care · Your data stays yours</div>
+</footer>
+
 <script>
-// ─────────────────────────────────────────────────────────
-// CONFIGURATION
-// ─────────────────────────────────────────────────────────
-const WEBHOOK_URL = "https://hook.eu1.make.com/eapza1auhc7ii5m2vcnljn98nbaie1bb";
-// ^ Paste your Make or Zapier webhook URL here.
-// Make: Webhooks > Custom webhook > Copy URL
-// Zapier: Webhooks by Zapier > Catch Hook > Copy URL
-
-const TOTAL_SPOTS = 100;
-// ^ Total beta places available
-
-// If you want a live counter from a backend, replace
-// fetchSpotsRemaining() below. For now it uses localStorage
-// as a lightweight demo counter (resets when cache clears).
-// ─────────────────────────────────────────────────────────
-
-
-// ─── Nav scroll state ───
-const nav = document.getElementById("main-nav");
-window.addEventListener("scroll", () => {
-  nav.classList.toggle("scrolled", window.scrollY > 20);
-});
-
-
-// ─── Spots counter ───
-// Simple approach: store signups count in localStorage.
-// Replace with a real API call once you have a backend.
-function getSpotsRemaining() {
-  const signups = parseInt(localStorage.getItem("beta_signups") || "0");
-  return Math.max(0, TOTAL_SPOTS - signups);
-}
-
-function updateSpotsDisplay(remaining) {
-  const heroEl = document.getElementById("hero-spots-count");
-  const formEl = document.getElementById("form-spots-count");
-  if (heroEl) heroEl.textContent = remaining;
-  if (formEl) formEl.textContent = remaining;
-}
-
-updateSpotsDisplay(getSpotsRemaining());
-
-
-// ─── Intersection observer for reveal animations ───
+// Scroll reveal
+const revealEls = document.querySelectorAll('.reveal');
 const observer = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
+  entries.forEach((entry, i) => {
     if (entry.isIntersecting) {
-      entry.target.classList.add("visible");
+      setTimeout(() => entry.target.classList.add('visible'), i * 60);
+      observer.unobserve(entry.target);
     }
   });
-}, { threshold: 0.12 });
+}, { threshold: 0.1 });
+revealEls.forEach(el => observer.observe(el));
 
-document.querySelectorAll(".reveal, .insight-card, .screenshot-frame").forEach(el => {
-  observer.observe(el);
-});
-
-
-// ─── Form submission ───
-document.getElementById("signup-form").addEventListener("submit", async (e) => {
+// Form submit
+function handleSubmit(e) {
   e.preventDefault();
+  document.getElementById('access-form').style.display = 'none';
+  document.getElementById('success-msg').classList.add('show');
+}
 
-  const btn = document.getElementById("submit-btn");
-  btn.disabled = true;
-  btn.textContent = "Sending…";
-
-  const payload = {
-    first_name: document.getElementById("first_name").value.trim(),
-    email:      document.getElementById("email").value.trim(),
-    role:       document.getElementById("role").value,
-    outreach_method: document.getElementById("outreach_method").value,
-    created_at: new Date().toISOString(),
-    source_url: window.location.href
-  };
-
-  let success = false;
-
-  // ── Send to Make webhook ──
-  // Make.com webhooks parse application/x-www-form-urlencoded correctly,
-  // giving you named variables (first_name, email, role, etc.) in the bundle.
-  // Sending JSON with no-cors causes Make to see a single opaque blob.
-  if (WEBHOOK_URL !== "YOUR_WEBHOOK_URL_HERE") {
-    try {
-      const encoded = new URLSearchParams(payload).toString();
-      await fetch(WEBHOOK_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        mode: "no-cors",
-        body: encoded
-      });
-      success = true;
-    } catch (err) {
-      console.error("Webhook error:", err);
-      // Fallback: still show success to user, log to console
-      success = true;
+// Smooth nav
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    const id = a.getAttribute('href').slice(1);
+    const el = document.getElementById(id);
+    if (el) {
+      e.preventDefault();
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
-  } else {
-    // No webhook set yet — log to console for testing
-    console.log("Form submission (no webhook configured):", payload);
-    success = true;
-  }
-
-  if (success) {
-    // Show success state
-    document.getElementById("signup-form").style.display = "none";
-    document.getElementById("success-state").style.display = "block";
-  } else {
-    btn.disabled = false;
-    btn.textContent = "Try again";
-  }
+  });
 });
+</script>
 
-
+<script>
 // ─────────────────────────────────────────────────────────
-// HEARTBEAT PULSE ANIMATION
-//
-// Each blob fires with a sharp quick rise → fast decay →
-// soft echo → long rest. Like a real pulse, not a sine wave.
-// Blobs stagger slightly so the pulse ripples across the field.
-//
-// TUNING PARAMETERS below — clearly marked
+// HEARTBEAT PULSE — Electric Dreams palette
+// Sharp Gaussian rise + diastolic echo, blobs staggered so
+// the pulse ripples across the field rather than flashing all at once.
 // ─────────────────────────────────────────────────────────
 (function () {
 
@@ -1091,37 +1229,35 @@ document.getElementById("signup-form").addEventListener("submit", async (e) => {
   const ctx    = canvas.getContext('2d');
 
   // ── TUNE ──────────────────────────────────────────────
-  const BLOB_COUNT     = 12;    // number of blobs
-  const RADIUS_MIN     = 120;   // blob base radius min (px)
-  const RADIUS_MAX     = 300;   // blob base radius max (px)
-  const CYCLE_MS       = 5000;  // ms between heartbeats
-  const PULSE_SWELL    = 0.45;  // how much radius expands on beat (0=none)
-  const OPACITY_BASE   = 0.22;  // resting opacity per blob
-  const OPACITY_FLARE  = 0.35;  // extra opacity added at peak of beat
-  const DRIFT          = 0.6;   // px per frame organic drift
-  const BLUR_PX        = 35;    // gaussian blur (px)
-  const STAGGER        = 0.18;  // phase stagger across blobs (0=all fire together)
-  const PARALLAX       = 0.04;  // mouse parallax strength
-  const MOBILE_FACTOR  = 0.6;   // blob count reduction on mobile
+  const BLOB_COUNT     = 9;      // number of blobs
+  const RADIUS_MIN     = 110;    // blob base radius min (px)
+  const RADIUS_MAX     = 240;    // blob base radius max (px)
+  const CYCLE_MS       = 8000;   // ms between heartbeats — slow, calm
+  const PULSE_SWELL    = 0.22;   // radius expansion on beat — noticeable but soft
+  const OPACITY_BASE   = 0.10;   // resting blob opacity
+  const OPACITY_FLARE  = 0.14;   // extra opacity at beat peak
+  const DRIFT          = 0.4;    // px per frame organic drift
+  const BLUR_PX        = 55;     // gaussian blur (px)
+  const STAGGER        = 0.15;   // phase stagger across blobs
+  const PARALLAX       = 0.03;   // mouse parallax strength
+  const MOBILE_FACTOR  = 0.6;    // blob reduction on mobile
 
-  // Soft teal / sage palette — [R, G, B]
+  // Electric Dreams palette — pink, cyan, a hint of amber
+  // [R, G, B]
   const PALETTE = [
-    [80,  160, 140],
-    [100, 180, 160],
-    [60,  140, 120],
-    [120, 190, 170],
-    [90,  155, 135],
-    [70,  150, 130],
+    [255,  20, 147],   // --pink
+    [255,  20, 147],   // pink (weighted double — dominant)
+    [  0, 212, 255],   // --cyan
+    [  0, 212, 255],   // cyan (weighted double)
+    [180,  10, 120],   // deep pink
+    [ 80, 160, 220],   // soft cyan-blue
   ];
-  // ──────────────────────────────────────────────────────
 
-  // Heartbeat curve: sharp Gaussian rise + softer echo, then silence
+  // Heartbeat curve: sharp primary spike + softer diastolic echo
   // t = 0..1 position within one cycle. Returns intensity 0..1.
   function heartbeatCurve(t) {
-    // Primary beat — very sharp, peaks at t≈0.04
-    const b1 = Math.exp(-((t - 0.04) ** 2) / 0.0012);
-    // Diastolic echo — softer, slightly later
-    const b2 = 0.50 * Math.exp(-((t - 0.13) ** 2) / 0.0020);
+    const b1 = Math.exp(-((t - 0.04) ** 2) / 0.0012);        // primary beat
+    const b2 = 0.45 * Math.exp(-((t - 0.13) ** 2) / 0.0022); // diastolic echo
     return Math.min(1, Math.max(0, b1 + b2));
   }
 
@@ -1143,7 +1279,7 @@ document.getElementById("signup-form").addEventListener("submit", async (e) => {
   function init() {
     blobs = [];
     const count = Math.floor(BLOB_COUNT * (isMobile() ? MOBILE_FACTOR : 1));
-    // Grid distribution with jitter — full coverage from frame 1
+    // Grid distribution with jitter for full coverage from frame 1
     const cols = Math.ceil(Math.sqrt(count * W / H));
     const rows = Math.ceil(count / cols);
     const cw = W / cols, ch = H / rows;
@@ -1153,17 +1289,16 @@ document.getElementById("signup-form").addEventListener("submit", async (e) => {
       const pal = PALETTE[Math.floor(Math.random() * PALETTE.length)];
       const br  = RADIUS_MIN + Math.random() * (RADIUS_MAX - RADIUS_MIN);
       blobs.push({
-        x:    (col + 0.15 + Math.random() * 0.7) * cw,
-        y:    (row + 0.15 + Math.random() * 0.7) * ch,
-        baseR: br, r: br,
-        col:  pal,
-        baseOpacity: OPACITY_BASE + Math.random() * 0.08,
-        ax: Math.random() * Math.PI * 2,
-        ay: Math.random() * Math.PI * 2,
-        sx: 0.0002 + Math.random() * 0.0003,
-        sy: 0.0002 + Math.random() * 0.0003,
-        // Stagger: each blob fires slightly after the previous
-        // creating a ripple rather than a single flash
+        x:           (col + 0.15 + Math.random() * 0.7) * cw,
+        y:           (row + 0.15 + Math.random() * 0.7) * ch,
+        baseR: br,   r: br,
+        col:         pal,
+        baseOpacity: OPACITY_BASE + Math.random() * 0.07,
+        ax:          Math.random() * Math.PI * 2,
+        ay:          Math.random() * Math.PI * 2,
+        sx:          0.0002 + Math.random() * 0.0003,
+        sy:          0.0002 + Math.random() * 0.0003,
+        // Stagger so blobs ripple rather than all flash simultaneously
         phaseOffset: (i / count) * STAGGER,
       });
     }
@@ -1180,30 +1315,28 @@ document.getElementById("signup-form").addEventListener("submit", async (e) => {
     const oy = (0.5 - my) * H * PARALLAX;
 
     blobs.forEach(b => {
-      // Slow organic drift
+      // Slow organic drift, wraps at canvas edge
       b.ax += b.sx; b.ay += b.sy;
       b.x  += Math.sin(b.ax) * DRIFT;
       b.y  += Math.cos(b.ay) * DRIFT;
       const pad = b.baseR + 10;
-      if (b.x < -pad) b.x = W + pad;
+      if (b.x < -pad)   b.x = W + pad;
       if (b.x > W + pad) b.x = -pad;
-      if (b.y < -pad) b.y = H + pad;
+      if (b.y < -pad)   b.y = H + pad;
       if (b.y > H + pad) b.y = -pad;
 
       // Heartbeat phase — staggered per blob
       const cycleT = ((ts / CYCLE_MS) + b.phaseOffset) % 1;
-      const hb = heartbeatCurve(cycleT);  // 0..1 beat intensity
+      const hb = heartbeatCurve(cycleT);
 
-      // Sharp radius swell + opacity flare on beat
       b.r = b.baseR * (1 + PULSE_SWELL * hb);
       const opacity = b.baseOpacity + OPACITY_FLARE * hb;
 
-      // Radial gradient blob
       const gx = b.x + ox, gy = b.y + oy;
       const [r, g, bv] = b.col;
       const grad = octx.createRadialGradient(gx, gy, 0, gx, gy, b.r);
       grad.addColorStop(0,   `rgba(${r},${g},${bv},${opacity.toFixed(3)})`);
-      grad.addColorStop(0.4, `rgba(${r},${g},${bv},${(opacity * 0.55).toFixed(3)})`);
+      grad.addColorStop(0.4, `rgba(${r},${g},${bv},${(opacity * 0.5).toFixed(3)})`);
       grad.addColorStop(1,   `rgba(${r},${g},${bv},0)`);
       octx.beginPath();
       octx.arc(gx, gy, b.r, 0, Math.PI * 2);
@@ -1211,7 +1344,7 @@ document.getElementById("signup-form").addEventListener("submit", async (e) => {
       octx.fill();
     });
 
-    // Blit offscreen → main with gaussian blur
+    // Blit offscreen → main canvas with gaussian blur for soft diffusion
     ctx.filter = `blur(${BLUR_PX}px)`;
     ctx.drawImage(off, 0, 0);
     ctx.filter = 'none';
@@ -1219,7 +1352,6 @@ document.getElementById("signup-form").addEventListener("submit", async (e) => {
     raf = requestAnimationFrame(frame);
   }
 
-  // Mouse / touch tracking
   window.addEventListener('mousemove', e => {
     tmx = e.clientX / W; tmy = e.clientY / H;
   });
@@ -1229,7 +1361,6 @@ document.getElementById("signup-form").addEventListener("submit", async (e) => {
       tmy = e.touches[0].clientY / H;
     }
   }, { passive: true });
-
   window.addEventListener('resize', () => {
     cancelAnimationFrame(raf);
     resize();
@@ -1241,23 +1372,154 @@ document.getElementById("signup-form").addEventListener("submit", async (e) => {
 
 })();
 </script>
+<script>
+// ── SUBTLE SCAN — linear sweep synced to 8s heartbeat cycle ──
+(function () {
 
-  <script>
-  (function(){
-    var imgs=['assets/screenshot-01.png','assets/screenshot-02.png','assets/screenshot-03.png',
-      'assets/screenshot-04.png','assets/screenshot-05.png','assets/screenshot-06.png','assets/screenshot-07.png'];
-    var overlay=document.getElementById('lightbox');
-    var lbImg=document.getElementById('lb-img');
-    var cur=0;
-    function open(i){cur=((i%imgs.length)+imgs.length)%imgs.length;lbImg.src=imgs[cur];overlay.classList.add('active');document.body.style.overflow='hidden';}
-    function close(){overlay.classList.remove('active');document.body.style.overflow='';}
-    document.querySelectorAll('.screenshot-frame[data-lb]').forEach(function(el){el.addEventListener('click',function(){open(parseInt(el.dataset.lb));});});
-    document.getElementById('lb-close').addEventListener('click',close);
-    document.getElementById('lb-prev').addEventListener('click',function(){open(cur-1);});
-    document.getElementById('lb-next').addEventListener('click',function(){open(cur+1);});
-    overlay.addEventListener('click',function(e){if(e.target===overlay)close();});
-    document.addEventListener('keydown',function(e){if(!overlay.classList.contains('active'))return;if(e.key==='Escape')close();if(e.key==='ArrowLeft')open(cur-1);if(e.key==='ArrowRight')open(cur+1);});
-  })();
-  </script>
+  const CYCLE_MS = 8000;  // must match pulse CYCLE_MS
+  const LIT_MS   = 280;   // border lit duration — brief
+  const FADE_MS  = 1400;  // long slow fade back to rest
+
+  let scanTargets = [];
+
+  function collectTargets() {
+    scanTargets = Array.from(document.querySelectorAll('[data-scan]')).map(el => ({
+      el,
+      colour: el.dataset.scan,
+      lastFired: -Infinity,
+    }));
+  }
+
+  function getScanY(ts) {
+    const t = (ts % CYCLE_MS) / CYCLE_MS;
+    return document.documentElement.scrollHeight * (1 - t);
+  }
+
+  function frame(ts) {
+    const scanY   = getScanY(ts);
+    const scrollY = window.scrollY;
+
+    scanTargets.forEach(target => {
+      const rect        = target.el.getBoundingClientRect();
+      const elCentreDoc = scrollY + rect.top + rect.height * 0.5;
+      const dist        = Math.abs(scanY - elCentreDoc);
+
+      if (dist < 60 && (ts - target.lastFired) > CYCLE_MS * 0.9) {
+        target.lastFired = ts;
+        light(target.el, target.colour);
+      }
+    });
+
+    requestAnimationFrame(frame);
+  }
+
+  function light(el, colour) {
+    el.classList.remove('scan-lit-pink', 'scan-lit-cyan', 'scan-fade');
+    void el.offsetWidth;
+    el.classList.add(colour === 'pink' ? 'scan-lit-pink' : 'scan-lit-cyan');
+    setTimeout(() => {
+      el.classList.add('scan-fade');
+      el.classList.remove('scan-lit-pink', 'scan-lit-cyan');
+      setTimeout(() => el.classList.remove('scan-fade'), FADE_MS + 50);
+    }, LIT_MS);
+  }
+
+  collectTargets();
+  window.addEventListener('resize', collectTargets);
+  requestAnimationFrame(frame);
+
+})();
+</script>
+<script>
+// ── BUTTON INK DROP ──────────────────────────────────────────
+// Radial bloom from cursor entry point — like ink in water.
+// No warp. Clean, elegant, disperses from origin.
+(function () {
+  const DURATION  = 1800;
+  const MAX_SCALE = 2.8;
+  const PEAK_AT   = 0.08;
+
+  function easeOut(t) { return 1 - Math.pow(1 - t, 3); }
+
+  function initButton(btn) {
+    const cvs = document.createElement('canvas');
+    cvs.className = 'btn-ripple-canvas';
+    btn.appendChild(cvs);
+    const ctx = cvs.getContext('2d');
+    let W, H, diagonal, raf, startTs, ox, oy;
+
+    function resize() {
+      const r = btn.getBoundingClientRect();
+      W = cvs.width  = r.width;
+      H = cvs.height = r.height;
+      diagonal = Math.sqrt(W * W + H * H);
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    function frame(ts) {
+      const elapsed = ts - startTs;
+      const t       = Math.min(elapsed / DURATION, 1);
+      const eased   = easeOut(t);
+      const radius  = eased * diagonal * MAX_SCALE;
+
+      ctx.clearRect(0, 0, W, H);
+
+      let opacity;
+      if (t < PEAK_AT) {
+        opacity = t / PEAK_AT;
+      } else {
+        opacity = Math.pow(1 - (t - PEAK_AT) / (1 - PEAK_AT), 1.6);
+      }
+      opacity *= 0.22;
+
+      const grad = ctx.createRadialGradient(ox, oy, 0, ox, oy, radius);
+      grad.addColorStop(0,    `rgba(255,255,255,${(opacity * 1.8).toFixed(3)})`);
+      grad.addColorStop(0.15, `rgba(255,255,255,${(opacity * 1.2).toFixed(3)})`);
+      grad.addColorStop(0.5,  `rgba(255,255,255,${(opacity * 0.5).toFixed(3)})`);
+      grad.addColorStop(1,    `rgba(255,255,255,0)`);
+      ctx.beginPath();
+      ctx.arc(ox, oy, Math.max(radius, 1), 0, Math.PI * 2);
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      if (t < 1) {
+        raf = requestAnimationFrame(frame);
+      } else {
+        ctx.clearRect(0, 0, W, H);
+      }
+    }
+
+    let ready = true;
+    btn.addEventListener('mouseenter', (e) => {
+      if (!ready) return;
+      ready = false;
+      if (raf) cancelAnimationFrame(raf);
+      const rect = btn.getBoundingClientRect();
+      ox = e.clientX - rect.left;
+      oy = e.clientY - rect.top;
+      startTs = null;
+      raf = requestAnimationFrame(ts => { startTs = ts; frame(ts); });
+
+      // Pulse ring — fires on the wrapper (outside overflow:hidden)
+      const wrap = btn.closest('.btn-ring-wrap');
+      if (wrap) {
+        wrap.classList.remove('ring-pulse');
+        void wrap.offsetWidth;
+        wrap.classList.add('ring-pulse');
+        wrap.addEventListener('animationend', () => {
+          wrap.classList.remove('ring-pulse');
+        }, { once: true });
+      }
+    });
+    btn.addEventListener('mouseleave', () => {
+      setTimeout(() => { ready = true; }, 100);
+    });
+  }
+
+  document.querySelectorAll('.btn-primary, .nav-cta').forEach(initButton);
+})();
+</script>
+
 </body>
 </html>
