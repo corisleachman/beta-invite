@@ -832,24 +832,28 @@ body:not(.variant-b):not(.variant-c) .pulse-tagline { display: flex; }
   overflow: hidden;
 }
 
-/* Pulse ring — expands from button border on hover entry */
-.btn-primary::before, .nav-cta::before {
+/* Pulse ring wrapper — sits outside the button (not clipped by overflow:hidden) */
+.btn-ring-wrap {
+  position: relative;
+  display: inline-flex;
+}
+.btn-ring-wrap::after {
   content: '';
   position: absolute;
   inset: 0;
-  border-radius: inherit;
-  border: 2px solid rgba(255,255,255,0.6);
+  border-radius: 100px; /* match button pill shape */
+  border: 1.5px solid rgba(255,255,255,0.55);
   opacity: 0;
   pointer-events: none;
   transform: scale(1);
 }
-.btn-primary.ring-pulse::before, .nav-cta.ring-pulse::before {
-  animation: btn-ring 1.1s cubic-bezier(0.2, 0.6, 0.3, 1) forwards;
+.btn-ring-wrap.ring-pulse::after {
+  animation: btn-ring 1.2s cubic-bezier(0.2, 0.6, 0.3, 1) forwards;
 }
 @keyframes btn-ring {
-  0%   { transform: scale(1.0);  opacity: 0;    }
-  5%   { opacity: 0.55;                         }
-  100% { transform: scale(1.55); opacity: 0;    }
+  0%   { transform: scale(1.0);  opacity: 0;   }
+  4%   { opacity: 0.55;                        }
+  100% { transform: scale(1.6);  opacity: 0;   }
 }
 .btn-ripple-canvas {
   position: absolute;
@@ -884,7 +888,7 @@ body:not(.variant-b):not(.variant-c) .pulse-tagline { display: flex; }
 <!-- NAV -->
 <nav>
   <a href="#" class="nav-logo">Pulse<span>.</span></a>
-  <a href="#access" class="nav-cta">Request access →</a>
+  <div class="btn-ring-wrap"><a href="#access" class="nav-cta">Request access →</a></div>
 </nav>
 
 <div class="wrap">
@@ -918,7 +922,7 @@ body:not(.variant-b):not(.variant-c) .pulse-tagline { display: flex; }
 
     <p class="hero-sub">For people who win work through conversations. A calmer system for staying consistent.</p>
     <div class="hero-actions">
-      <a href="#access" class="btn-primary">Request early access →</a>
+      <div class="btn-ring-wrap"><a href="#access" class="btn-primary">Request early access →</a></div>
       <a href="#how" class="btn-ghost">See how it works</a>
     </div>
     <p class="hero-note">Join the first 100 beta users · No spam · Just occasional updates</p>
@@ -1499,13 +1503,16 @@ function setVariant(v) {
       startTs = null;
       raf = requestAnimationFrame(ts => { startTs = ts; frame(ts); });
 
-      // Pulse ring — fires once on entry
-      btn.classList.remove('ring-pulse');
-      void btn.offsetWidth; // force reflow to restart animation
-      btn.classList.add('ring-pulse');
-      btn.addEventListener('animationend', () => {
-        btn.classList.remove('ring-pulse');
-      }, { once: true });
+      // Pulse ring — fires on the wrapper (outside overflow:hidden)
+      const wrap = btn.closest('.btn-ring-wrap');
+      if (wrap) {
+        wrap.classList.remove('ring-pulse');
+        void wrap.offsetWidth;
+        wrap.classList.add('ring-pulse');
+        wrap.addEventListener('animationend', () => {
+          wrap.classList.remove('ring-pulse');
+        }, { once: true });
+      }
     });
     btn.addEventListener('mouseleave', () => {
       setTimeout(() => { ready = true; }, 100);
