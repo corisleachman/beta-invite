@@ -1157,6 +1157,16 @@ footer {
                 <option>Other</option>
               </select>
             </div>
+            <div class="form-group form-full">
+              <label class="form-label">Which email system do you use?</label>
+              <select id="email_system" class="form-select" required>
+                <option value="" disabled selected>Select an option</option>
+                <option>Gmail</option>
+                <option>Microsoft Outlook</option>
+                <option>Both</option>
+                <option>Other</option>
+              </select>
+            </div>
             <div class="form-submit-wrap">
               <div class="btn-ring-wrap"><button type="submit" id="submit-btn" class="btn-submit">Request early access →</button></div>
               <p class="form-note">No spam. Just occasional updates as the beta develops.</p>
@@ -1224,6 +1234,7 @@ document.getElementById('access-form').addEventListener('submit', async (e) => {
     email:           document.getElementById('email').value.trim(),
     role:            document.getElementById('role').value,
     outreach_method: document.getElementById('outreach_method').value,
+    email_system:    document.getElementById('email_system').value,
     created_at:      new Date().toISOString(),
     source_url:      window.location.href
   };
