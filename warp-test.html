@@ -7,250 +7,242 @@
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg:   #0d0914;
-  --t:    #f4f4f2;
-  --tm:   #a8a8b8;
-  --b:    rgba(255,255,255,0.07);
-  --b2:   rgba(255,255,255,0.13);
-  --pink: #ff1493;
-  --cyan: #00d4ff;
+  --bg: #0d0914; --t: #f4f4f2; --tm: #a8a8b8;
+  --b: rgba(255,255,255,0.07); --b2: rgba(255,255,255,0.13);
+  --pink: #ff1493; --cyan: #00d4ff;
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 body {
-  background: var(--bg);
-  color: var(--t);
+  background: var(--bg); color: var(--t);
   font-family: 'Outfit', sans-serif;
-  padding: 60px 40px;
-  min-height: 100vh;
+  padding: 60px 40px; min-height: 100vh;
 }
 h1 {
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--tm);
-  margin-bottom: 48px;
+  font-size: 13px; font-weight: 600;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--tm); margin-bottom: 48px;
 }
 .grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 20px;
 }
-
-/* ── IMAGE WARP CARD ── */
 .warp-card {
   position: relative;
   border-radius: 12px;
   overflow: hidden;
   border: 1px solid var(--b);
   cursor: pointer;
-  /* Filter applied to the whole card — displaces image + border together */
-}
-.warp-card img {
-  width: 100%;
-  height: auto;
-  display: block;
-  /* Transition for subtle brightness on hover */
-  transition: filter 0.3s ease;
-}
-.warp-card:hover img {
-  filter: brightness(1.08);
-}
-
-/* Scan-style border glow on hover entry — same language as the page */
-.warp-card::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  border: 1px solid rgba(255, 20, 147, 0);
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
-  pointer-events: none;
 }
-.warp-card:hover::after {
-  border-color: rgba(255, 20, 147, 0.3);
-  box-shadow: 0 0 20px rgba(255, 20, 147, 0.08),
-              inset 0 0 12px rgba(255, 20, 147, 0.04);
+.warp-card:hover {
+  border-color: rgba(255,20,147,0.3);
+  box-shadow: 0 0 20px rgba(255,20,147,0.08);
 }
-
-/* ── WARP FILTER ── */
-/* The SVG filter lives outside the DOM, shared across all cards.
-   JS animates feDisplacementMap scale: 0 → peak → 0
-   and feTurbulence baseFrequency phase offset to make it travel. */
-#warp-filter-svg { position: absolute; width: 0; height: 0; pointer-events: none; }
-
-/* Applied via JS — class toggled on hover */
-.warp-card.warping {
-  filter: url(#img-warp);
+/* The source img is hidden — canvas replaces it visually */
+.warp-card img {
+  display: block; width: 100%; height: auto;
+  opacity: 0; position: absolute; pointer-events: none;
 }
-
-/* Label */
+.warp-card canvas {
+  display: block; width: 100%; height: auto;
+}
 .card-label {
-  position: absolute;
-  bottom: 0; left: 0; right: 0;
+  position: absolute; bottom: 0; left: 0; right: 0;
   padding: 20px 16px 14px;
   background: linear-gradient(to top, rgba(13,9,20,0.85), transparent);
-  font-size: 12px;
-  color: var(--tm);
-  letter-spacing: 0.03em;
-  opacity: 0;
-  transition: opacity 0.25s ease;
-  pointer-events: none;
+  font-size: 12px; color: var(--tm); letter-spacing: 0.03em;
+  opacity: 0; transition: opacity 0.25s ease; pointer-events: none;
 }
 .warp-card:hover .card-label { opacity: 1; }
 </style>
 </head>
 <body>
-
-<!-- Hidden SVG filter — shared, driven by JS -->
-<svg id="warp-filter-svg" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <filter id="img-warp" x="-5%" y="-5%" width="110%" height="110%"
-            color-interpolation-filters="linearRGB">
-      <feTurbulence
-        id="warp-turb"
-        type="turbulence"
-        baseFrequency="0.018 0.012"
-        numOctaves="3"
-        seed="8"
-        result="turb"/>
-      <feDisplacementMap
-        id="warp-disp"
-        in="SourceGraphic"
-        in2="turb"
-        scale="0"
-        xChannelSelector="R"
-        yChannelSelector="G"/>
-    </filter>
-  </defs>
-</svg>
-
 <h1>Image warp — hover test</h1>
-
 <div class="grid">
-  <div class="warp-card" data-label="Follow-up queue">
-    <img src="assets/screenshot-01.png" alt="Follow-up queue">
+  <div class="warp-card">
+    <img src="assets/screenshot-01.png" alt="">
     <div class="card-label">Follow-up queue</div>
   </div>
-  <div class="warp-card" data-label="Prospect overview">
-    <img src="assets/screenshot-02.png" alt="Prospect overview">
+  <div class="warp-card">
+    <img src="assets/screenshot-02.png" alt="">
     <div class="card-label">Prospect overview</div>
   </div>
-  <div class="warp-card" data-label="Connection pipeline">
-    <img src="assets/screenshot-03.png" alt="Connection pipeline">
+  <div class="warp-card">
+    <img src="assets/screenshot-03.png" alt="">
     <div class="card-label">Connection pipeline</div>
   </div>
-  <div class="warp-card" data-label="Prospect review">
-    <img src="assets/screenshot-04.png" alt="Prospect review">
+  <div class="warp-card">
+    <img src="assets/screenshot-04.png" alt="">
     <div class="card-label">Prospect review</div>
   </div>
-  <div class="warp-card" data-label="Outreach dashboard">
-    <img src="assets/screenshot-05.png" alt="Outreach dashboard">
+  <div class="warp-card">
+    <img src="assets/screenshot-05.png" alt="">
     <div class="card-label">Outreach dashboard</div>
   </div>
-  <div class="warp-card" data-label="Message drafts">
-    <img src="assets/screenshot-06.png" alt="Message drafts">
+  <div class="warp-card">
+    <img src="assets/screenshot-06.png" alt="">
     <div class="card-label">Message drafts</div>
   </div>
-  <div class="warp-card" data-label="Pulse overlay">
-    <img src="assets/screenshot-07.png" alt="Pulse overlay">
+  <div class="warp-card">
+    <img src="assets/screenshot-07.png" alt="">
     <div class="card-label">Pulse overlay</div>
   </div>
 </div>
 
 <script>
-// ── IMAGE WARP ENGINE ──────────────────────────────────────────────
-// On hover: animate feDisplacementMap scale through a bell curve
-// (0 → peak → 0) over DURATION ms, while slowly offsetting the
-// turbulence seed phase so the warp appears to travel across the image.
-// One-shot per hover, same philosophy as the button ink drop.
+// ── HORIZONTAL WAVE WARP ───────────────────────────────────────────
+// A sinusoidal wave travels left→right across the image.
+// Each column of pixels is displaced vertically by a sine wave
+// whose phase shifts as the wave front passes through.
+// The result: a smooth fluid ripple moving horizontally,
+// like heat haze or water — not noise, not turbulence.
+//
+// Tuning:
+//   WAVE_AMPLITUDE — how many pixels each column shifts vertically
+//   WAVE_FREQUENCY — how many complete waves are visible at peak
+//   DURATION       — total travel time in ms
+//   PEAK_AT        — fraction of duration when amplitude peaks
 
 (function () {
-  const DURATION   = 1400;  // ms for the full warp cycle
-  const PEAK_SCALE = 22;    // max displacement in px — strong but not violent
-  const PEAK_AT    = 0.22;  // fraction of duration at peak (early, long tail)
+  const WAVE_AMPLITUDE = 6;    // px displacement at peak (vertical shift)
+  const WAVE_FREQUENCY = 2.5;  // wave cycles visible across the image
+  const WAVE_FRONT_WIDTH = 0.35; // fraction of image width the active band spans
+  const DURATION       = 1800; // ms for the wave to cross
+  const PEAK_AT        = 0.15; // fraction of duration at peak amplitude
 
-  const dispMap = document.getElementById('warp-disp');
-  const turbEl  = document.getElementById('warp-turb');
-
-  let activeCard = null;
-  let raf = null;
-  let startTs = null;
-
-  // Ease function: fast rise, long ease-out tail
   function easeOut(t) { return 1 - Math.pow(1 - t, 3); }
 
   function bellCurve(t) {
-    // Fast rise to PEAK_AT, then slow decay to 0
-    if (t < PEAK_AT) {
-      return easeOut(t / PEAK_AT);
+    if (t < PEAK_AT) return easeOut(t / PEAK_AT);
+    return Math.pow(1 - (t - PEAK_AT) / (1 - PEAK_AT), 2.2);
+  }
+
+  function initCard(card) {
+    const img = card.querySelector('img');
+
+    // Create canvas sized to image
+    const cvs = document.createElement('canvas');
+    card.insertBefore(cvs, card.querySelector('.card-label'));
+    const ctx = cvs.getContext('2d');
+
+    let W, H, naturalW, naturalH;
+    let offCvs, offCtx; // offscreen — holds the clean source frame
+    let raf, startTs, ready = true;
+
+    function setup() {
+      naturalW = img.naturalWidth;
+      naturalH = img.naturalHeight;
+      // Canvas at native resolution, CSS scales it down
+      cvs.width  = naturalW;
+      cvs.height = naturalH;
+      W = naturalW; H = naturalH;
+
+      // Draw clean source onto offscreen canvas once
+      offCvs = document.createElement('canvas');
+      offCvs.width = W; offCvs.height = H;
+      offCtx = offCvs.getContext('2d');
+      offCtx.drawImage(img, 0, 0, W, H);
+
+      // Draw clean frame to visible canvas immediately
+      ctx.drawImage(offCvs, 0, 0);
+    }
+
+    if (img.complete && img.naturalWidth) {
+      setup();
     } else {
-      const decay = (t - PEAK_AT) / (1 - PEAK_AT);
-      return Math.pow(1 - decay, 1.8);
+      img.addEventListener('load', setup);
     }
-  }
 
-  function frame(ts) {
-    if (!startTs) startTs = ts;
-    const elapsed = ts - startTs;
-    const t = Math.min(elapsed / DURATION, 1);
-    const intensity = bellCurve(t);
+    function frame(ts) {
+      if (!startTs) startTs = ts;
+      const elapsed = ts - startTs;
+      const t = Math.min(elapsed / DURATION, 1);
 
-    // Drive displacement scale
-    const scale = intensity * PEAK_SCALE;
-    dispMap.setAttribute('scale', scale.toFixed(2));
+      // Wave front position: travels 0 → 1 (left → right) linearly
+      // Use same eased travel so it enters fast, exits slowly
+      const frontX = easeOut(t); // 0..1 across image width
 
-    // Slowly shift turbulence baseFrequency to give the warp
-    // a sense of travelling motion across the image
-    const freqX = 0.018 + intensity * 0.008;
-    const freqY = 0.012 + intensity * 0.005;
-    turbEl.setAttribute('baseFrequency', `${freqX.toFixed(4)} ${freqY.toFixed(4)}`);
+      // Overall amplitude follows bell curve
+      const amp = bellCurve(t) * WAVE_AMPLITUDE;
 
-    if (t < 1) {
-      raf = requestAnimationFrame(frame);
-    } else {
-      // Warp complete — remove filter class, reset
-      dispMap.setAttribute('scale', '0');
-      if (activeCard) {
-        activeCard.classList.remove('warping');
-        activeCard._warping = false;
-        activeCard = null;
+      if (amp < 0.1 && t > PEAK_AT) {
+        // Done — draw clean frame and stop
+        ctx.clearRect(0, 0, W, H);
+        ctx.drawImage(offCvs, 0, 0);
+        ready = false;
+        startTs = null;
+        return;
       }
-      startTs = null;
-    }
-  }
 
-  function startWarp(card) {
-    // Cancel any in-progress warp
-    if (raf) {
-      cancelAnimationFrame(raf);
-      dispMap.setAttribute('scale', '0');
-      if (activeCard && activeCard !== card) {
-        activeCard.classList.remove('warping');
-        activeCard._warping = false;
+      // Get source pixel data from the clean offscreen canvas
+      const srcData = offCtx.getImageData(0, 0, W, H);
+      const src = srcData.data;
+
+      const outData = ctx.createImageData(W, H);
+      const dst = outData.data;
+
+      const frontPx = frontX * W;
+      const bandW   = WAVE_FRONT_WIDTH * W;
+
+      for (let x = 0; x < W; x++) {
+        // How far is this column from the wave front? -1..1 within the band
+        const distFromFront = (x - frontPx) / bandW;
+
+        // Only columns within the band get displaced
+        // Smooth falloff: cos²(distFromFront × π/2) within band
+        let colAmp = 0;
+        if (distFromFront > -1 && distFromFront < 1) {
+          const fade = Math.cos(distFromFront * Math.PI * 0.5);
+          colAmp = fade * fade * amp;
+        }
+
+        // Sine wave displacement for this column
+        // Phase shifts with x so the wave has spatial frequency
+        const phaseShift = (x / W) * Math.PI * 2 * WAVE_FREQUENCY
+                         - frontX * Math.PI * 2 * WAVE_FREQUENCY;
+        const dy = Math.sin(phaseShift) * colAmp;
+
+        // Copy pixels for this column with vertical offset
+        for (let y = 0; y < H; y++) {
+          const srcY = Math.round(y - dy);
+          const clampedY = Math.max(0, Math.min(H - 1, srcY));
+
+          const si = (clampedY * W + x) * 4;
+          const di = (y       * W + x) * 4;
+
+          dst[di]     = src[si];
+          dst[di + 1] = src[si + 1];
+          dst[di + 2] = src[si + 2];
+          dst[di + 3] = src[si + 3];
+        }
+      }
+
+      ctx.putImageData(outData, 0, 0);
+
+      if (t < 1) {
+        raf = requestAnimationFrame(frame);
+      } else {
+        ctx.clearRect(0, 0, W, H);
+        ctx.drawImage(offCvs, 0, 0);
+        startTs = null;
       }
     }
-
-    activeCard = card;
-    card._warping = true;
-    card.classList.add('warping');
-    startTs = null;
-    raf = requestAnimationFrame(frame);
-  }
-
-  document.querySelectorAll('.warp-card').forEach(card => {
-    let ready = true;
 
     card.addEventListener('mouseenter', () => {
-      if (!ready) return;
+      if (!ready || !offCvs) return;
       ready = false;
-      startWarp(card);
+      if (raf) cancelAnimationFrame(raf);
+      startTs = null;
+      raf = requestAnimationFrame(frame);
     });
 
     card.addEventListener('mouseleave', () => {
-      setTimeout(() => { ready = true; }, 80);
+      setTimeout(() => { ready = true; }, 100);
     });
-  });
+  }
+
+  document.querySelectorAll('.warp-card').forEach(initCard);
 })();
 </script>
 </body>
