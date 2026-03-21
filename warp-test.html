@@ -35,7 +35,19 @@ h1 {
   overflow: hidden;
   border: 1px solid var(--b);
   cursor: pointer;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease,
+              opacity 0.8s ease, transform 0.8s cubic-bezier(0.22, 0.61, 0.36, 1);
+  /* Start state — hidden, offset to one side */
+  opacity: 0;
+  transform: translateX(-80px);
+}
+.warp-card.from-right {
+  transform: translateX(80px);
+}
+/* Revealed state */
+.warp-card.visible {
+  opacity: 1;
+  transform: translateX(0);
 }
 .warp-card:hover {
   border-color: rgba(255,20,147,0.3);
@@ -66,7 +78,7 @@ h1 {
     <img src="assets/screenshot-01.png" alt="">
     <div class="card-label">Follow-up queue</div>
   </div>
-  <div class="warp-card">
+  <div class="warp-card from-right">
     <img src="assets/screenshot-02.png" alt="">
     <div class="card-label">Prospect overview</div>
   </div>
@@ -74,7 +86,7 @@ h1 {
     <img src="assets/screenshot-03.png" alt="">
     <div class="card-label">Connection pipeline</div>
   </div>
-  <div class="warp-card">
+  <div class="warp-card from-right">
     <img src="assets/screenshot-04.png" alt="">
     <div class="card-label">Prospect review</div>
   </div>
@@ -82,7 +94,7 @@ h1 {
     <img src="assets/screenshot-05.png" alt="">
     <div class="card-label">Outreach dashboard</div>
   </div>
-  <div class="warp-card">
+  <div class="warp-card from-right">
     <img src="assets/screenshot-06.png" alt="">
     <div class="card-label">Message drafts</div>
   </div>
@@ -91,6 +103,29 @@ h1 {
     <div class="card-label">Pulse overlay</div>
   </div>
 </div>
+
+<script>
+// ── SCROLL REVEAL ──────────────────────────────────────────────────
+// Cards slide in from alternating sides as they enter the viewport.
+// Uses IntersectionObserver — fires once per card, then unobserves.
+(function () {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, {
+    threshold: 0.12,     // trigger when 12% of card is visible
+    rootMargin: '0px 0px -40px 0px'  // slight offset from bottom edge
+  });
+
+  document.querySelectorAll('.warp-card').forEach(card => {
+    observer.observe(card);
+  });
+})();
+</script>
 
 <script>
 // ── HORIZONTAL WAVE WARP ───────────────────────────────────────────
