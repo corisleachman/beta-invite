@@ -145,7 +145,7 @@ nav {
   transition: opacity 0.2s, transform 0.2s, box-shadow 0.2s;
   box-shadow: 0 0 24px var(--glow-pink);
 }
-.nav-cta:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 4px 32px var(--glow-pink); }
+.nav-cta:hover { opacity: 0.9; box-shadow: 0 4px 32px var(--glow-pink); }
 
 /* ── HERO ── */
 .hero {
@@ -234,7 +234,7 @@ nav {
   box-shadow: 0 0 40px var(--glow-pink), 0 4px 20px rgba(0,0,0,0.4);
   letter-spacing: 0.01em;
 }
-.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 60px var(--glow-pink), 0 8px 30px rgba(0,0,0,0.4); }
+.btn-primary:hover { box-shadow: 0 0 60px var(--glow-pink), 0 8px 30px rgba(0,0,0,0.4); }
 .btn-ghost {
   display: inline-flex;
   align-items: center;
@@ -852,8 +852,8 @@ body:not(.variant-b):not(.variant-c) .pulse-tagline { display: flex; }
 }
 @keyframes btn-ring {
   0%   { transform: scale(1.0);  opacity: 0;   }
-  4%   { opacity: 0.55;                        }
-  100% { transform: scale(1.6);  opacity: 0;   }
+  4%   { opacity: 0.44;                        }
+  100% { transform: scale(1.48); opacity: 0;   }
 }
 .btn-ripple-canvas {
   position: absolute;
