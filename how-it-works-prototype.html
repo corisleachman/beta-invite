@@ -212,22 +212,17 @@ body::before {
 
 /* Panel pane — one per step, shown/hidden */
 .hiw-pane {
-  position: absolute;
-  inset: 0;
-  display: flex;
+  display: none;
   flex-direction: column;
   padding: 28px;
-  opacity: 0;
-  transform: translateX(16px);
-  transition: opacity 0.4s ease, transform 0.4s ease;
-  pointer-events: none;
 }
 .hiw-pane.active {
-  opacity: 1;
-  transform: translateX(0);
-  pointer-events: all;
-  position: relative;
-  inset: auto;
+  display: flex;
+  animation: paneIn 0.35s ease forwards;
+}
+@keyframes paneIn {
+  from { opacity: 0; transform: translateX(12px); }
+  to   { opacity: 1; transform: translateX(0); }
 }
 
 /* Pane header */
@@ -247,36 +242,26 @@ body::before {
 /* Screenshot carousel */
 .pane-carousel {
   flex: 1;
-  position: relative;
-  min-height: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
 }
 .pane-slides {
   position: relative;
-  width: 100%; height: 100%;
-  min-height: 280px;
+  width: 100%;
 }
 .pane-slide {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  transition: opacity 0.45s ease, transform 0.45s ease;
-  transform: scale(0.97);
-  pointer-events: none;
+  display: none;
 }
 .pane-slide.active {
-  opacity: 1;
-  transform: scale(1);
-  pointer-events: all;
-  position: relative;
-  inset: auto;
-  height: 100%;
+  display: block;
 }
 .pane-slide img {
-  width: 100%; height: 100%;
-  object-fit: cover;
+  width: 100%;
+  height: auto;
+  display: block;
   border-radius: 10px;
   border: 1px solid var(--b2);
-  display: block;
 }
 
 /* Placeholder when no real image yet */
@@ -325,12 +310,12 @@ body::before {
   opacity: 0.3;
 }
 
-/* Carousel dots + nav */
+/* Carousel nav — sits ABOVE the image */
 .pane-nav {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 16px;
+  margin-bottom: 12px;
   min-height: 28px;
 }
 .pane-dots {
@@ -475,11 +460,10 @@ body::before {
 .mob-slide.active { display: block; }
 .mob-slide img {
   width: 100%;
-  aspect-ratio: 16/9;
-  object-fit: cover;
+  height: auto;
+  display: block;
   border-radius: 10px;
   border: 1px solid var(--b2);
-  display: block;
 }
 .mob-img-placeholder {
   width: 100%; aspect-ratio: 16/9;
@@ -617,6 +601,18 @@ body::before {
           <div class="hiw-pane active" data-pane="0">
             <div class="pane-label">Step 01</div>
             <div class="pane-title">Import and review</div>
+            <div class="pane-nav">
+              <div class="pane-dots">
+                <button class="pane-dot active"></button>
+                <button class="pane-dot"></button>
+                <button class="pane-dot"></button>
+              </div>
+              <span class="pane-counter">1 / 3</span>
+              <div class="pane-arrows">
+                <button class="pane-arrow" data-dir="-1" disabled>←</button>
+                <button class="pane-arrow" data-dir="1">→</button>
+              </div>
+            </div>
             <div class="pane-carousel">
               <div class="pane-slides">
                 <div class="pane-slide active">
@@ -630,24 +626,23 @@ body::before {
                 </div>
               </div>
             </div>
-            <div class="pane-nav">
-              <div class="pane-dots">
-                <button class="pane-dot active"></button>
-                <button class="pane-dot"></button>
-                <button class="pane-dot"></button>
-              </div>
-              <span class="pane-counter">1 / 3</span>
-              <div class="pane-arrows">
-                <button class="pane-arrow" data-dir="-1" disabled>←</button>
-                <button class="pane-arrow" data-dir="1">→</button>
-              </div>
-            </div>
           </div>
 
           <!-- PANE 1: Send with intention -->
           <div class="hiw-pane" data-pane="1">
             <div class="pane-label">Step 02</div>
             <div class="pane-title">Send with intention</div>
+            <div class="pane-nav">
+              <div class="pane-dots">
+                <button class="pane-dot active"></button>
+                <button class="pane-dot"></button>
+              </div>
+              <span class="pane-counter">1 / 2</span>
+              <div class="pane-arrows">
+                <button class="pane-arrow" data-dir="-1" disabled>←</button>
+                <button class="pane-arrow" data-dir="1">→</button>
+              </div>
+            </div>
             <div class="pane-carousel">
               <div class="pane-slides">
                 <div class="pane-slide active">
@@ -658,6 +653,12 @@ body::before {
                 </div>
               </div>
             </div>
+          </div>
+
+          <!-- PANE 2: Never lose momentum -->
+          <div class="hiw-pane" data-pane="2">
+            <div class="pane-label">Step 03</div>
+            <div class="pane-title">Never lose momentum</div>
             <div class="pane-nav">
               <div class="pane-dots">
                 <button class="pane-dot active"></button>
@@ -669,12 +670,6 @@ body::before {
                 <button class="pane-arrow" data-dir="1">→</button>
               </div>
             </div>
-          </div>
-
-          <!-- PANE 2: Never lose momentum -->
-          <div class="hiw-pane" data-pane="2">
-            <div class="pane-label">Step 03</div>
-            <div class="pane-title">Never lose momentum</div>
             <div class="pane-carousel">
               <div class="pane-slides">
                 <div class="pane-slide active">
@@ -683,17 +678,6 @@ body::before {
                 <div class="pane-slide">
                   <img src="assets/03. Follow-up2.png" alt="Follow-up screen 2">
                 </div>
-              </div>
-            </div>
-            <div class="pane-nav">
-              <div class="pane-dots">
-                <button class="pane-dot active"></button>
-                <button class="pane-dot"></button>
-              </div>
-              <span class="pane-counter">1 / 2</span>
-              <div class="pane-arrows">
-                <button class="pane-arrow" data-dir="-1" disabled>←</button>
-                <button class="pane-arrow" data-dir="1">→</button>
               </div>
             </div>
           </div>
@@ -721,17 +705,6 @@ body::before {
           </div>
           <div class="mob-body">
             <div class="mob-inner">
-              <div class="mob-slides">
-                <div class="mob-slide active">
-                  <img src="assets/01. Import 1.png" alt="Import screen 1">
-                </div>
-                <div class="mob-slide">
-                  <img src="assets/01. Import 2.png" alt="Import screen 2">
-                </div>
-                <div class="mob-slide">
-                  <img src="assets/01. Import 3.png" alt="Import screen 3">
-                </div>
-              </div>
               <div class="mob-nav">
                 <div class="pane-dots">
                   <button class="pane-dot active"></button>
@@ -742,6 +715,17 @@ body::before {
                 <div class="pane-arrows">
                   <button class="pane-arrow" data-dir="-1" disabled>←</button>
                   <button class="pane-arrow" data-dir="1">→</button>
+                </div>
+              </div>
+              <div class="mob-slides">
+                <div class="mob-slide active">
+                  <img src="assets/01. Import 1.png" alt="Import screen 1">
+                </div>
+                <div class="mob-slide">
+                  <img src="assets/01. Import 2.png" alt="Import screen 2">
+                </div>
+                <div class="mob-slide">
+                  <img src="assets/01. Import 3.png" alt="Import screen 3">
                 </div>
               </div>
             </div>
@@ -762,14 +746,6 @@ body::before {
           </div>
           <div class="mob-body">
             <div class="mob-inner">
-              <div class="mob-slides">
-                <div class="mob-slide active">
-                  <img src="assets/02. Send 1.png" alt="Send screen 1">
-                </div>
-                <div class="mob-slide">
-                  <img src="assets/02. Send 2.png" alt="Send screen 2">
-                </div>
-              </div>
               <div class="mob-nav">
                 <div class="pane-dots">
                   <button class="pane-dot active"></button>
@@ -779,6 +755,14 @@ body::before {
                 <div class="pane-arrows">
                   <button class="pane-arrow" data-dir="-1" disabled>←</button>
                   <button class="pane-arrow" data-dir="1">→</button>
+                </div>
+              </div>
+              <div class="mob-slides">
+                <div class="mob-slide active">
+                  <img src="assets/02. Send 1.png" alt="Send screen 1">
+                </div>
+                <div class="mob-slide">
+                  <img src="assets/02. Send 2.png" alt="Send screen 2">
                 </div>
               </div>
             </div>
@@ -799,14 +783,6 @@ body::before {
           </div>
           <div class="mob-body">
             <div class="mob-inner">
-              <div class="mob-slides">
-                <div class="mob-slide active">
-                  <img src="assets/03. Follow-up1.png" alt="Follow-up screen 1">
-                </div>
-                <div class="mob-slide">
-                  <img src="assets/03. Follow-up2.png" alt="Follow-up screen 2">
-                </div>
-              </div>
               <div class="mob-nav">
                 <div class="pane-dots">
                   <button class="pane-dot active"></button>
@@ -816,6 +792,14 @@ body::before {
                 <div class="pane-arrows">
                   <button class="pane-arrow" data-dir="-1" disabled>←</button>
                   <button class="pane-arrow" data-dir="1">→</button>
+                </div>
+              </div>
+              <div class="mob-slides">
+                <div class="mob-slide active">
+                  <img src="assets/03. Follow-up1.png" alt="Follow-up screen 1">
+                </div>
+                <div class="mob-slide">
+                  <img src="assets/03. Follow-up2.png" alt="Follow-up screen 2">
                 </div>
               </div>
             </div>
