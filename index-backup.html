@@ -1,0 +1,1585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta property="og:title" content="Pulse. — The heartbeat of outreach.">
+<meta property="og:description" content="Stop letting follow-ups slip. Pulse keeps your outreach moving — tracking contacts, surfacing next steps, and making consistency effortless. Invite-only beta.">
+<meta property="og:image" content="https://corisleachman.github.io/beta-invite/assets/Pulse%20outreach%20app.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="https://www.pulse-outreach.co.uk">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Pulse.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Pulse. — The heartbeat of outreach.">
+<meta name="twitter:description" content="Stop letting follow-ups slip. Pulse keeps your outreach moving — tracking contacts, surfacing next steps, and making consistency effortless. Invite-only beta.">
+<meta name="twitter:image" content="https://corisleachman.github.io/beta-invite/assets/Pulse%20outreach%20app.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pulse. — Invite-only beta</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+/* ── TOKENS ── */
+:root {
+  --bg:    #0d0914;
+  --s:     rgba(255,255,255,0.04);
+  --s2:    rgba(255,255,255,0.07);
+  --b:     rgba(255,255,255,0.07);
+  --b2:    rgba(255,255,255,0.13);
+  --t:     #f4f4f2;
+  --tm:    #a8a8b8;
+  --td:    #6b6b80;
+  --pink:  #ff1493;
+  --cyan:  #00d4ff;
+  --green: #64dc78;
+  --amber: #ff9d42;
+  --grad:  linear-gradient(135deg, #ff1493, #00d4ff);
+  --grad-text: linear-gradient(135deg, #ff1493 0%, #00d4ff 100%);
+  --glow-pink: rgba(255,20,147,0.25);
+  --glow-cyan: rgba(0,212,255,0.2);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--t);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* ── SCAN EFFECT — subtle border breath ── */
+.callout-card,
+.step-card,
+.screen-card,
+.founder-inner,
+.access-inner {
+  transition: border-color 0.3s ease, box-shadow 0.3s ease,
+              background 0.2s ease, transform 0.2s ease;
+}
+.scan-lit-pink {
+  border-color: rgba(255, 20, 147, 0.35) !important;
+  box-shadow: 0 0 10px rgba(255, 20, 147, 0.10),
+              inset 0 0 8px rgba(255, 20, 147, 0.03) !important;
+}
+.scan-lit-cyan {
+  border-color: rgba(0, 212, 255, 0.35) !important;
+  box-shadow: 0 0 10px rgba(0, 212, 255, 0.10),
+              inset 0 0 8px rgba(0, 212, 255, 0.03) !important;
+}
+.scan-fade {
+  transition: border-color 1.4s ease, box-shadow 1.4s ease !important;
+}
+
+/* ── NOISE TEXTURE OVERLAY ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.4;
+}
+
+/* ── BACKGROUND GLOW ORBS ── */
+.bg-orbs {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(140px);
+  opacity: 0.08;
+}
+.orb-1 { width: 600px; height: 600px; background: var(--pink); top: -200px; right: -100px; animation: drift1 18s ease-in-out infinite; }
+.orb-2 { width: 500px; height: 500px; background: var(--cyan);  bottom: 20%; left: -150px; animation: drift2 22s ease-in-out infinite; }
+.orb-3 { width: 400px; height: 400px; background: var(--amber); top: 40%; right: 15%; animation: drift3 26s ease-in-out infinite; opacity: 0.05; }
+
+@keyframes drift1 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-60px,80px)} }
+@keyframes drift2 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(80px,-60px)} }
+@keyframes drift3 { 0%,100%{transform:translate(0,0)} 33%{transform:translate(-40px,60px)} 66%{transform:translate(50px,-30px)} }
+
+/* ── LAYOUT ── */
+.wrap { position: relative; z-index: 1; }
+.container { max-width: 1100px; margin: 0 auto; padding: 0 40px; }
+.container-sm { max-width: 720px; margin: 0 auto; padding: 0 40px; }
+
+/* ── NAV ── */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  padding: 20px 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(13,9,20,0.7);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--b);
+}
+.nav-logo {
+  font-family: 'Outfit', sans-serif;
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--t);
+  text-decoration: none;
+  letter-spacing: -0.03em;
+}
+.nav-logo span {
+  background: var(--grad-text);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.nav-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  background: var(--grad);
+  color: white;
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  border-radius: 100px;
+  transition: opacity 0.2s, transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 0 24px var(--glow-pink);
+}
+.nav-cta:hover { opacity: 0.9; box-shadow: 0 4px 32px var(--glow-pink); }
+
+/* ── HERO ── */
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 120px 40px 40px;
+}
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  border: 1px solid var(--b2);
+  border-radius: 100px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--cyan);
+  background: rgba(0,212,255,0.06);
+  margin-bottom: 36px;
+  animation: fadeUp 0.8s ease both;
+}
+.hero-badge::before {
+  content: '';
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--cyan);
+  box-shadow: 0 0 8px var(--cyan);
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+.hero-headline {
+  font-family: 'Outfit', sans-serif;
+  font-size: clamp(48px, 7vw, 88px);
+  font-weight: 900;
+  line-height: 1.0;
+  letter-spacing: -0.04em;
+  color: var(--t);
+  margin-bottom: 28px;
+  animation: fadeUp 0.8s 0.1s ease both;
+}
+.hero-headline .grad {
+  background: var(--grad-text);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.hero-sub {
+  font-size: 18px;
+  color: var(--tm);
+  max-width: 480px;
+  line-height: 1.65;
+  margin-bottom: 52px;
+  animation: fadeUp 0.8s 0.2s ease both;
+}
+.hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+  animation: fadeUp 0.8s 0.3s ease both;
+}
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 36px;
+  background: var(--grad);
+  color: white;
+  font-family: 'Outfit', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+  border-radius: 100px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 0 40px var(--glow-pink), 0 4px 20px rgba(0,0,0,0.4);
+  letter-spacing: 0.01em;
+}
+.btn-primary:hover { box-shadow: 0 0 60px var(--glow-pink), 0 8px 30px rgba(0,0,0,0.4); }
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 15px 28px;
+  background: transparent;
+  color: var(--tm);
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  border-radius: 100px;
+  border: 1px solid var(--b2);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-ghost:hover { color: var(--t); border-color: rgba(255,255,255,0.3); }
+.hero-note {
+  margin-top: 20px;
+  font-size: 12px;
+  color: var(--td);
+  animation: fadeUp 0.8s 0.4s ease both;
+}
+
+/* ── SECTION DIVIDER ── */
+.divider {
+  width: 1px;
+  height: 40px;
+  background: linear-gradient(to bottom, transparent, var(--b2), transparent);
+  margin: 0 auto;
+}
+
+/* ── PROBLEM SECTION ── */
+.section { padding: 72px 0; }
+.section-label {
+  font-family: 'Outfit', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--pink);
+  margin-bottom: 24px;
+}
+.section-headline {
+  font-family: 'Outfit', sans-serif;
+  font-size: clamp(32px, 4vw, 52px);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  color: var(--t);
+  margin-bottom: 24px;
+}
+.section-body {
+  font-size: 17px;
+  color: var(--tm);
+  line-height: 1.7;
+  max-width: 580px;
+}
+.section-body + .section-body { margin-top: 16px; }
+
+/* Problem two-col */
+.problem-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: start;
+}
+.problem-right {
+  padding-top: 8px;
+}
+.callout-card {
+  background: var(--s);
+  border: 1px solid var(--b2);
+  border-radius: 16px;
+  padding: 28px;
+  margin-top: 32px;
+}
+.callout-card-label {
+  font-family: 'Outfit', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--cyan);
+  margin-bottom: 12px;
+}
+.callout-card-headline {
+  font-family: 'Outfit', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--t);
+  line-height: 1.25;
+  margin-bottom: 12px;
+  letter-spacing: -0.02em;
+}
+.callout-card-body {
+  font-size: 14px;
+  color: var(--tm);
+  line-height: 1.65;
+}
+
+/* ── HOW IT WORKS ── */
+.steps { padding: 72px 0; }
+.steps-header { text-align: center; margin-bottom: 72px; }
+.steps-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+}
+.step-card {
+  background: var(--s);
+  border: 1px solid var(--b);
+  padding: 40px 36px;
+  position: relative;
+  overflow: hidden;
+  transition: background 0.3s, border-color 0.3s;
+}
+.step-card:first-child { border-radius: 16px 0 0 16px; }
+.step-card:last-child  { border-radius: 0 16px 16px 0; }
+.step-card:hover { background: var(--s2); border-color: var(--b2); }
+.step-card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--grad);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.step-card:hover::after { opacity: 1; }
+.step-num {
+  font-family: 'Outfit', sans-serif;
+  font-size: 48px;
+  font-weight: 900;
+  background: var(--grad-text);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1;
+  margin-bottom: 20px;
+  letter-spacing: -0.04em;
+}
+.step-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--t);
+  letter-spacing: -0.02em;
+  margin-bottom: 12px;
+}
+.step-body { font-size: 14px; color: var(--tm); line-height: 1.65; }
+
+/* ── FEATURES SECTION ── */
+.features { padding: 100px 0; }
+.features-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  align-items: start;
+}
+.features-left .section-body { margin-bottom: 40px; }
+.feature-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.feature-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 18px;
+  background: var(--s);
+  border: 1px solid var(--b);
+  border-radius: 10px;
+  transition: border-color 0.2s, background 0.2s;
+}
+.feature-item:hover { border-color: var(--b2); background: var(--s2); }
+.feature-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--grad);
+  flex-shrink: 0;
+  margin-top: 6px;
+  box-shadow: 0 0 8px var(--glow-pink);
+}
+.feature-text { font-size: 14px; color: var(--t); line-height: 1.5; }
+.feature-tag {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-left: 6px;
+}
+.tag-pro  { background: rgba(255,20,147,0.15); color: var(--pink); border: 1px solid rgba(255,20,147,0.2); }
+.tag-soon { background: rgba(0,212,255,0.1);   color: var(--cyan); border: 1px solid rgba(0,212,255,0.18); }
+
+/* What's included — right side panel */
+.included-panel {
+  background: var(--s);
+  border: 1px solid var(--b2);
+  border-radius: 16px;
+  padding: 32px;
+  position: sticky;
+  top: 100px;
+}
+.included-label {
+  font-family: 'Outfit', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--td);
+  margin-bottom: 20px;
+}
+.included-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.included-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  color: var(--tm);
+}
+.included-item .check {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: rgba(100,220,120,0.12);
+  border: 1px solid rgba(100,220,120,0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 10px;
+  color: var(--green);
+}
+
+/* ── SCREENS / WHAT IT LOOKS LIKE ── */
+.screens { padding: 100px 0; }
+.screens-header { text-align: center; margin-bottom: 60px; }
+.screens-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.screen-card {
+  background: var(--s);
+  border: 1px solid var(--b);
+  border-radius: 14px;
+  padding: 28px 24px;
+  transition: border-color 0.2s, transform 0.2s;
+  cursor: default;
+}
+.screen-card:hover { border-color: rgba(255,20,147,0.3); transform: translateY(-3px); }
+.screen-icon {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  background: var(--s2);
+  border: 1px solid var(--b2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  margin-bottom: 16px;
+}
+.screen-name {
+  font-family: 'Outfit', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--t);
+  letter-spacing: -0.01em;
+  margin-bottom: 8px;
+}
+.screen-desc { font-size: 13px; color: var(--tm); line-height: 1.55; }
+
+/* ── EARLY ACCESS FORM ── */
+.access { padding: 100px 0; }
+.access-inner {
+  background: var(--s);
+  border: 1px solid var(--b2);
+  border-radius: 24px;
+  padding: 64px;
+  position: relative;
+  overflow: hidden;
+}
+.access-inner::before {
+  content: '';
+  position: absolute;
+  top: -1px; left: 10%; right: 10%;
+  height: 1px;
+  background: var(--grad);
+  opacity: 0.6;
+}
+.access-header {
+  text-align: center;
+  margin-bottom: 48px;
+}
+.access-header .section-label { display: block; }
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+.form-full { grid-column: 1 / -1; }
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.form-label {
+  font-family: 'Outfit', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--td);
+}
+.form-input, .form-select {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--b2);
+  border-radius: 10px;
+  padding: 13px 16px;
+  color: var(--t);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s, background 0.2s;
+  width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.form-input:focus, .form-select:focus {
+  border-color: rgba(255,20,147,0.5);
+  background: rgba(255,20,147,0.04);
+}
+.form-input::placeholder { color: var(--td); }
+.form-select { cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b6b80' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
+.form-select option { background: #1a1028; color: var(--t); }
+.form-submit-wrap { grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 8px; }
+.btn-submit {
+  width: 100%;
+  padding: 16px;
+  background: var(--grad);
+  color: white;
+  font-family: 'Outfit', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  border: none;
+  border-radius: 100px;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 0 32px var(--glow-pink);
+  letter-spacing: 0.02em;
+}
+.btn-submit:hover { box-shadow: 0 4px 40px var(--glow-pink); }
+.form-note { font-size: 12px; color: var(--td); }
+
+/* Success state */
+.success-msg {
+  display: none;
+  text-align: center;
+  padding: 40px;
+}
+.success-msg.show { display: block; }
+.success-icon { font-size: 40px; margin-bottom: 16px; }
+.success-headline {
+  font-family: 'Outfit', sans-serif;
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--t);
+  letter-spacing: -0.02em;
+  margin-bottom: 12px;
+}
+.success-body { font-size: 15px; color: var(--tm); }
+
+/* ── FOUNDER NOTE ── */
+.founder { padding: 80px 0 120px; }
+.founder-inner {
+  display: flex;
+  gap: 48px;
+  align-items: flex-start;
+  max-width: 760px;
+  margin: 0 auto;
+}
+.founder-mark {
+  font-family: 'Outfit', sans-serif;
+  font-size: 80px;
+  font-weight: 900;
+  background: var(--grad-text);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: -8px;
+}
+.founder-body { font-size: 17px; color: var(--tm); line-height: 1.7; font-style: italic; }
+.founder-body strong { color: var(--t); font-style: normal; font-weight: 500; }
+.founder-sig {
+  margin-top: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.founder-avatar {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: var(--grad);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  color: white;
+  flex-shrink: 0;
+}
+.founder-name { font-size: 14px; color: var(--td); }
+
+/* ── FOOTER ── */
+footer {
+  border-top: 1px solid var(--b);
+  padding: 32px 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.footer-logo {
+  font-family: 'Outfit', sans-serif;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+.footer-logo span {
+  background: var(--grad-text);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.footer-note { font-size: 12px; color: var(--td); }
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.reveal {
+  opacity: 0;
+  transform: translateY(32px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── GRADIENT LINE ── */
+.grad-line {
+  height: 1px;
+  background: var(--grad);
+  opacity: 0.2;
+  margin: 0;
+}
+
+
+
+/* Variant D locked — badge + Pulse. headline */
+.pulse-tagline    { display: none; }
+.pulse-interstitial { display: none; }
+.hero-headline-c { display: block; }
+
+/* ── BUTTON INK DROP ── */
+/* A radial pulse blooms from wherever the cursor enters the button —
+   like a drop of ink dispersing in water. Originates at mouse coords,
+   expands outward, fades as it reaches the edges. Drawn on a per-button
+   canvas via JS so it originates precisely at the entry point. */
+.btn-primary, .nav-cta, .btn-ghost, .btn-submit {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Pulse ring wrapper — sits outside the button (not clipped by overflow:hidden) */
+.btn-ring-wrap {
+  position: relative;
+  display: inline-flex;
+}
+.btn-ring-wrap::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 100px; /* match button pill shape */
+  border: 1.5px solid rgba(255,255,255,0.55);
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(1);
+}
+.btn-ring-wrap.ring-pulse::after {
+  animation: btn-ring 1.2s cubic-bezier(0.2, 0.6, 0.3, 1) forwards;
+}
+@keyframes btn-ring {
+  0%   { transform: scale(1.0);  opacity: 0;   }
+  4%   { opacity: 0.44;                        }
+  100% { transform: scale(1.48); opacity: 0;   }
+}
+.btn-ripple-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+
+/* ══════════════════════════════════════════════════════════
+   RESPONSIVE — TABLET (≤768px) + MOBILE (≤480px)
+   ══════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+
+  /* ── Containers ── */
+  .container, .container-sm {
+    padding: 0 20px;
+  }
+
+
+
+  /* ── Nav ── */
+  nav {
+    padding: 16px 20px;
+  }
+  .nav-cta {
+    padding: 8px 16px;
+    font-size: 12px;
+  }
+
+  /* ── Hero ── */
+  .hero {
+    padding: 56px 20px 40px;
+  }
+  .divider {
+    display: none;
+  }
+  .hero-actions {
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+  }
+  .btn-primary, .btn-ring-wrap {
+    width: 100%;
+    justify-content: center;
+  }
+  .btn-ghost {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* ── Problem section ── */
+  .problem-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  /* ── Steps — stack vertically, fix border radius ── */
+  .steps-grid {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+  .step-card:first-child { border-radius: 16px 16px 0 0; }
+  .step-card:last-child  { border-radius: 0 0 16px 16px; }
+
+  /* ── Features ── */
+  .features-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  .features-right {
+    padding: 24px;
+  }
+
+  /* ── Screen cards — 2 columns on tablet ── */
+  .screens-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  /* ── Access form ── */
+  .access-inner {
+    padding: 32px 24px;
+  }
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* ── Founder ── */
+  .founder-inner {
+    padding: 32px 24px;
+  }
+  .founder-quote {
+    font-size: 22px;
+  }
+
+  /* ── Footer ── */
+  footer {
+    padding: 24px 20px;
+  }
+
+  /* ── Section padding ── */
+  .section, .steps, .features, .screens, .access, .founder {
+    padding: 60px 0;
+  }
+
+}
+
+@media (max-width: 480px) {
+
+  /* ── Screen cards — single column on phones ── */
+  .screens-grid {
+    grid-template-columns: 1fr;
+  }
+
+
+
+  /* ── Hero headline size ── */
+  .hero {
+    padding: 48px 20px 32px;
+  }
+
+  /* ── Callout cards ── */
+  .callout-card {
+    padding: 20px;
+  }
+
+  /* ── Step cards ── */
+  .step-card {
+    padding: 20px;
+  }
+
+  /* ── Access ── */
+  .access-inner {
+    padding: 24px 16px;
+  }
+
+  /* ── Founder ── */
+  .founder-inner {
+    padding: 24px 16px;
+  }
+  .founder-avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 12px;
+  }
+
+}
+
+</style>
+</head>
+<body class="variant-d">
+
+
+<canvas id="pulse-canvas" style="position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;"></canvas>
+
+<div class="bg-orbs">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">Pulse<span>.</span></a>
+  <div class="btn-ring-wrap"><a href="#access" class="nav-cta">Request access →</a></div>
+</nav>
+
+<div class="wrap">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-badge">Invite-only beta</div>
+
+    <h1 class="hero-headline">
+      <span class="grad">Pulse.</span><br>
+      The heartbeat of outreach.
+    </h1>
+
+    <p class="hero-sub">For people who win work through conversations. A calmer system for staying consistent.</p>
+    <div class="hero-actions">
+      <div class="btn-ring-wrap"><a href="#access" class="btn-primary">Request early access →</a></div>
+      <div class="btn-ring-wrap"><a href="#how" class="btn-ghost">See how it works</a></div>
+    </div>
+    <p class="hero-note">Join the first 100 beta users · No spam · Just occasional updates</p>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- PROBLEM -->
+  <section class="section" id="problem">
+    <div class="container">
+      <div class="problem-grid reveal">
+        <div>
+          <div class="section-label">The problem</div>
+          <h2 class="section-headline">Most outreach systems are built wrong.</h2>
+          <p class="section-body">They're built for sales teams with ops budgets. Pipelines, deal stages, dashboards, automation — all of it needs setting up, maintaining, and learning.</p>
+          <p class="section-body">You open them and feel the weight of it before you've sent a single email. Most people doing outreach don't need any of that. They just need something that keeps them on track.</p>
+        </div>
+        <div class="problem-right">
+          <div class="callout-card reveal">
+            <div class="callout-card-label">Outreach works.<br>Consistency breaks.</div>
+            <h3 class="callout-card-headline">Most outreach doesn't fail because the message is bad.</h3>
+            <p class="callout-card-body">It fails because follow-ups stop happening. A quick check-in. A friendly nudge. Those small actions create conversations. And conversations create opportunity. But only if they actually happen.</p>
+          </div>
+          <div class="callout-card reveal" data-scan="cyan" style="margin-top:16px;">
+            <div class="callout-card-label">The real problem</div>
+            <h3 class="callout-card-headline">It's not sending emails. It's remembering the next one.</h3>
+            <p class="callout-card-body">Not a CRM. Not a cold-email blaster. Just a simple tool that keeps your outreach moving.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grad-line"></div>
+
+  <!-- HOW IT WORKS -->
+  <section class="steps" id="how">
+    <div class="container">
+      <div class="steps-header reveal">
+        <div class="section-label" style="text-align:center;">How it works</div>
+        <h2 class="section-headline" style="text-align:center;max-width:500px;margin:0 auto;">Three steps. Then it runs itself.</h2>
+      </div>
+      <div class="steps-grid reveal">
+        <div class="step-card" data-scan="pink">
+          <div class="step-num">01</div>
+          <div class="step-title">Import and review</div>
+          <p class="step-body">Bring in any prospect list. Review who's worth contacting. Every list has noise — this is where you cut it.</p>
+        </div>
+        <div class="step-card" data-scan="cyan">
+          <div class="step-num">02</div>
+          <div class="step-title">Send with intention</div>
+          <p class="step-body">Drafts are generated. You review and approve. Nothing sends without your eyes on it first.</p>
+        </div>
+        <div class="step-card" data-scan="pink">
+          <div class="step-num">03</div>
+          <div class="step-title">Never lose momentum</div>
+          <p class="step-body">Follow-ups appear when they're due. Conversations surface automatically. The next step is always obvious.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grad-line"></div>
+
+  <!-- FEATURES -->
+  <section class="features" id="features">
+    <div class="container">
+      <div class="features-grid">
+        <div class="features-left reveal">
+          <div class="section-label">The system</div>
+          <h2 class="section-headline">An effortless system for consistent outreach.</h2>
+          <p class="section-body">This tool does one thing. It stops your outreach from going quiet. No pipelines. No confusing dashboards. No CRM to set up and maintain.</p>
+          <div class="feature-list" style="margin-top:32px;">
+            <div class="feature-item">
+              <div class="feature-dot"></div>
+              <div class="feature-text">Tracks who you've contacted and when</div>
+            </div>
+            <div class="feature-item">
+              <div class="feature-dot"></div>
+              <div class="feature-text">Tells you what needs to happen next</div>
+            </div>
+            <div class="feature-item">
+              <div class="feature-dot"></div>
+              <div class="feature-text">Makes the next action effortless, so momentum never disappears</div>
+            </div>
+            <div class="feature-item">
+              <div class="feature-dot"></div>
+              <div class="feature-text">Surfaces conversations and replies in one place</div>
+            </div>
+            <div class="feature-item">
+              <div class="feature-dot"></div>
+              <div class="feature-text">Suggests the right follow-up — value drop, check-in, or chase — at the right moment</div>
+            </div>
+          </div>
+        </div>
+        <div class="reveal">
+          <div class="included-panel">
+            <div class="included-label">What's included</div>
+            <div class="included-list">
+              <div class="included-item"><div class="check">✓</div><span>Multiple campaigns &amp; prospect lists</span></div>
+              <div class="included-item"><div class="check">✓</div><span>Gmail integration</span></div>
+              <div class="included-item">
+                <div class="check">✓</div>
+                <span>Auto-scheduled sending <span class="feature-tag tag-pro">Pro</span></span>
+              </div>
+              <div class="included-item">
+                <div class="check">✓</div>
+                <span>AI-drafted emails <span class="feature-tag tag-pro">Pro</span></span>
+              </div>
+              <div class="included-item"><div class="check">✓</div><span>Follow-up queue &amp; reminders</span></div>
+              <div class="included-item"><div class="check">✓</div><span>Prospect status tracking</span></div>
+              <div class="included-item"><div class="check">✓</div><span>One-click prospect qualification</span></div>
+              <div class="included-item"><div class="check">✓</div><span>Your data stays yours</span></div>
+              <div class="included-item"><div class="check">✓</div><span>Free tier to get started</span></div>
+              <div class="included-item">
+                <div class="check" style="color:var(--cyan);background:rgba(0,212,255,0.08);border-color:rgba(0,212,255,0.2);">→</div>
+                <span>Microsoft Outlook <span class="feature-tag tag-soon">Soon</span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grad-line"></div>
+
+  <!-- WHAT IT LOOKS LIKE -->
+  <section class="screens" id="screens">
+    <div class="container">
+      <div class="screens-header reveal">
+        <div class="section-label" style="text-align:center;">What it looks like</div>
+        <h2 class="section-headline" style="text-align:center;">Simple by design.<br>Effortless by default.</h2>
+        <p style="color:var(--tm);font-size:16px;margin-top:16px;max-width:480px;margin-left:auto;margin-right:auto;">A dashboard designed around actions, not data. You always know what to do next.</p>
+      </div>
+      <div class="screens-grid reveal">
+        <div class="screen-card" data-scan="pink">
+          <div class="screen-icon">📋</div>
+          <div class="screen-name">Follow-up queue</div>
+          <p class="screen-desc">See exactly who needs a reply and when. Nothing gets missed.</p>
+        </div>
+        <div class="screen-card" data-scan="cyan">
+          <div class="screen-icon">👥</div>
+          <div class="screen-name">Prospect overview</div>
+          <p class="screen-desc">Every active conversation at a glance, with context already loaded.</p>
+        </div>
+        <div class="screen-card" data-scan="pink">
+          <div class="screen-icon">📈</div>
+          <div class="screen-name">Connection pipeline</div>
+          <p class="screen-desc">Track warm leads from first touch to booked call in one view.</p>
+        </div>
+        <div class="screen-card" data-scan="cyan">
+          <div class="screen-icon">🔍</div>
+          <div class="screen-name">Prospect review</div>
+          <p class="screen-desc">Review profiles and draft personalised outreach without switching tabs.</p>
+        </div>
+        <div class="screen-card" data-scan="pink">
+          <div class="screen-icon">⚡</div>
+          <div class="screen-name">Outreach dashboard</div>
+          <p class="screen-desc">Your daily outreach actions, surfaced and prioritised automatically.</p>
+        </div>
+        <div class="screen-card" data-scan="cyan">
+          <div class="screen-icon">✍️</div>
+          <div class="screen-name">Message drafts</div>
+          <p class="screen-desc">AI-assisted drafts that sound like you — ready to send in one click.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grad-line"></div>
+
+  <!-- ACCESS FORM -->
+  <section class="access" id="access">
+    <div class="container-sm">
+      <div class="access-inner reveal" data-scan="pink">
+        <div class="access-header">
+          <span class="section-label">Early access</span>
+          <h2 class="section-headline" style="margin-top:16px;">Request beta access</h2>
+          <p style="color:var(--tm);font-size:15px;margin-top:12px;max-width:460px;margin-left:auto;margin-right:auto;">The product is currently being tested with a small group of early users. People who already run outreach and want a calmer system for staying consistent.</p>
+        </div>
+
+        <form id="access-form" onsubmit="handleSubmit(event)">
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">First name</label>
+              <input id="first_name" class="form-input" type="text" placeholder="Coris" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email</label>
+              <input id="email" class="form-input" type="email" placeholder="you@example.com" required>
+            </div>
+            <div class="form-group form-full">
+              <label class="form-label">What best describes you?</label>
+              <select id="role" class="form-select" required>
+                <option value="" disabled selected>Select your role</option>
+                <option>Consultant</option>
+                <option>Agency founder</option>
+                <option>Recruiter</option>
+                <option>Fractional operator</option>
+                <option>Business development</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="form-group form-full">
+              <label class="form-label">How do you currently manage outreach?</label>
+              <select id="outreach_method" class="form-select" required>
+                <option value="" disabled selected>Select an option</option>
+                <option>Spreadsheet</option>
+                <option>CRM (HubSpot, Pipedrive, etc.)</option>
+                <option>Inbox + memory</option>
+                <option>Nothing consistent yet</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="form-group form-full">
+              <label class="form-label">Which email system do you use?</label>
+              <select id="email_system" class="form-select" required>
+                <option value="" disabled selected>Select an option</option>
+                <option>Gmail</option>
+                <option>Microsoft Outlook</option>
+                <option>Both</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="form-submit-wrap">
+              <div class="btn-ring-wrap"><button type="submit" id="submit-btn" class="btn-submit">Request early access →</button></div>
+              <p class="form-note">No spam. Just occasional updates as the beta develops.</p>
+            </div>
+          </div>
+        </form>
+
+        <div class="success-msg" id="success-msg">
+          <div class="success-icon">✦</div>
+          <h3 class="success-headline">You're on the list.</h3>
+          <p class="success-body">I'll be inviting people in small groups as the beta develops.<br>Thanks for your interest — I'll be in touch.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOUNDER NOTE -->
+  <section class="founder">
+    <div class="container">
+      <div class="founder-inner reveal" data-scan="cyan">
+        <div class="founder-mark">"</div>
+        <div>
+          <p class="founder-body">I built this because I was tired of juggling spreadsheets, reminders and half-finished outreach tools. I wanted something <strong>quieter</strong>. Something that simply keeps outreach moving without the overhead. So I built it for myself first. Now I'm testing whether other people want it too.</p>
+          <div class="founder-sig">
+            <div class="founder-avatar">C</div>
+            <span class="founder-name">Coris — founder, Pulse.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div><!-- end wrap -->
+
+<footer>
+  <div class="footer-logo">Pulse<span>.</span></div>
+  <div class="footer-note">Invite-only beta · Built with care · Your data stays yours</div>
+</footer>
+
+<script>
+// Scroll reveal
+const revealEls = document.querySelectorAll('.reveal');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach((entry, i) => {
+    if (entry.isIntersecting) {
+      setTimeout(() => entry.target.classList.add('visible'), i * 60);
+      observer.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.1 });
+revealEls.forEach(el => observer.observe(el));
+
+// ── FORM SUBMISSION ──────────────────────────────────────────
+const WEBHOOK_URL = "https://hook.eu1.make.com/eapza1auhc7ii5m2vcnljn98nbaie1bb";
+
+document.getElementById('access-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
+
+  const payload = {
+    first_name:      document.getElementById('first_name').value.trim(),
+    email:           document.getElementById('email').value.trim(),
+    role:            document.getElementById('role').value,
+    outreach_method: document.getElementById('outreach_method').value,
+    email_system:    document.getElementById('email_system').value,
+    created_at:      new Date().toISOString(),
+    source_url:      window.location.href
+  };
+
+  let success = false;
+
+  try {
+    const encoded = new URLSearchParams(payload).toString();
+    await fetch(WEBHOOK_URL, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      mode:    'no-cors',
+      body:    encoded
+    });
+    success = true;
+  } catch (err) {
+    console.error('Webhook error:', err);
+    success = true; // still show success — no-cors means we can't read response
+  }
+
+  if (success) {
+    document.getElementById('access-form').style.display = 'none';
+    document.getElementById('success-msg').classList.add('show');
+  } else {
+    btn.disabled = false;
+    btn.textContent = 'Try again';
+  }
+});
+
+// Smooth nav
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    const id = a.getAttribute('href').slice(1);
+    const el = document.getElementById(id);
+    if (el) {
+      e.preventDefault();
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+});
+</script>
+
+<script>
+// ─────────────────────────────────────────────────────────
+// HEARTBEAT PULSE — Electric Dreams palette
+// Sharp Gaussian rise + diastolic echo, blobs staggered so
+// the pulse ripples across the field rather than flashing all at once.
+// ─────────────────────────────────────────────────────────
+(function () {
+
+  const canvas = document.getElementById('pulse-canvas');
+  const ctx    = canvas.getContext('2d');
+
+  // ── TUNE ──────────────────────────────────────────────
+  const BLOB_COUNT     = 9;      // number of blobs
+  const RADIUS_MIN     = 110;    // blob base radius min (px)
+  const RADIUS_MAX     = 240;    // blob base radius max (px)
+  const CYCLE_MS       = 8000;   // ms between heartbeats — slow, calm
+  const PULSE_SWELL    = 0.22;   // radius expansion on beat — noticeable but soft
+  const OPACITY_BASE   = 0.10;   // resting blob opacity
+  const OPACITY_FLARE  = 0.14;   // extra opacity at beat peak
+  const DRIFT          = 0.4;    // px per frame organic drift
+  const BLUR_PX        = 55;     // gaussian blur (px)
+  const STAGGER        = 0.15;   // phase stagger across blobs
+  const PARALLAX       = 0.03;   // mouse parallax strength
+  const MOBILE_FACTOR  = 0.6;    // blob reduction on mobile
+
+  // Electric Dreams palette — pink, cyan, a hint of amber
+  // [R, G, B]
+  const PALETTE = [
+    [255,  20, 147],   // --pink
+    [255,  20, 147],   // pink (weighted double — dominant)
+    [  0, 212, 255],   // --cyan
+    [  0, 212, 255],   // cyan (weighted double)
+    [180,  10, 120],   // deep pink
+    [ 80, 160, 220],   // soft cyan-blue
+  ];
+
+  // Heartbeat curve: sharp primary spike + softer diastolic echo
+  // t = 0..1 position within one cycle. Returns intensity 0..1.
+  function heartbeatCurve(t) {
+    const b1 = Math.exp(-((t - 0.04) ** 2) / 0.0012);        // primary beat
+    const b2 = 0.45 * Math.exp(-((t - 0.13) ** 2) / 0.0022); // diastolic echo
+    return Math.min(1, Math.max(0, b1 + b2));
+  }
+
+  let W, H, blobs = [];
+  let mx = 0.5, my = 0.5, tmx = 0.5, tmy = 0.5;
+  let off, octx, raf;
+
+  function isMobile() { return window.innerWidth < 768; }
+
+  function resize() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+    off = document.createElement('canvas');
+    off.width = W; off.height = H;
+    octx = off.getContext('2d');
+    init();
+  }
+
+  function init() {
+    blobs = [];
+    const count = Math.floor(BLOB_COUNT * (isMobile() ? MOBILE_FACTOR : 1));
+    // Grid distribution with jitter for full coverage from frame 1
+    const cols = Math.ceil(Math.sqrt(count * W / H));
+    const rows = Math.ceil(count / cols);
+    const cw = W / cols, ch = H / rows;
+
+    for (let i = 0; i < count; i++) {
+      const col = i % cols, row = Math.floor(i / cols);
+      const pal = PALETTE[Math.floor(Math.random() * PALETTE.length)];
+      const br  = RADIUS_MIN + Math.random() * (RADIUS_MAX - RADIUS_MIN);
+      blobs.push({
+        x:           (col + 0.15 + Math.random() * 0.7) * cw,
+        y:           (row + 0.15 + Math.random() * 0.7) * ch,
+        baseR: br,   r: br,
+        col:         pal,
+        baseOpacity: OPACITY_BASE + Math.random() * 0.07,
+        ax:          Math.random() * Math.PI * 2,
+        ay:          Math.random() * Math.PI * 2,
+        sx:          0.0002 + Math.random() * 0.0003,
+        sy:          0.0002 + Math.random() * 0.0003,
+        // Stagger so blobs ripple rather than all flash simultaneously
+        phaseOffset: (i / count) * STAGGER,
+      });
+    }
+  }
+
+  function frame(ts) {
+    octx.clearRect(0, 0, W, H);
+    ctx.clearRect(0, 0, W, H);
+
+    // Smooth indirect mouse parallax
+    mx += (tmx - mx) * 0.03;
+    my += (tmy - my) * 0.03;
+    const ox = (0.5 - mx) * W * PARALLAX;
+    const oy = (0.5 - my) * H * PARALLAX;
+
+    blobs.forEach(b => {
+      // Slow organic drift, wraps at canvas edge
+      b.ax += b.sx; b.ay += b.sy;
+      b.x  += Math.sin(b.ax) * DRIFT;
+      b.y  += Math.cos(b.ay) * DRIFT;
+      const pad = b.baseR + 10;
+      if (b.x < -pad)   b.x = W + pad;
+      if (b.x > W + pad) b.x = -pad;
+      if (b.y < -pad)   b.y = H + pad;
+      if (b.y > H + pad) b.y = -pad;
+
+      // Heartbeat phase — staggered per blob
+      const cycleT = ((ts / CYCLE_MS) + b.phaseOffset) % 1;
+      const hb = heartbeatCurve(cycleT);
+
+      b.r = b.baseR * (1 + PULSE_SWELL * hb);
+      const opacity = b.baseOpacity + OPACITY_FLARE * hb;
+
+      const gx = b.x + ox, gy = b.y + oy;
+      const [r, g, bv] = b.col;
+      const grad = octx.createRadialGradient(gx, gy, 0, gx, gy, b.r);
+      grad.addColorStop(0,   `rgba(${r},${g},${bv},${opacity.toFixed(3)})`);
+      grad.addColorStop(0.4, `rgba(${r},${g},${bv},${(opacity * 0.5).toFixed(3)})`);
+      grad.addColorStop(1,   `rgba(${r},${g},${bv},0)`);
+      octx.beginPath();
+      octx.arc(gx, gy, b.r, 0, Math.PI * 2);
+      octx.fillStyle = grad;
+      octx.fill();
+    });
+
+    // Blit offscreen → main canvas with gaussian blur for soft diffusion
+    ctx.filter = `blur(${BLUR_PX}px)`;
+    ctx.drawImage(off, 0, 0);
+    ctx.filter = 'none';
+
+    raf = requestAnimationFrame(frame);
+  }
+
+  window.addEventListener('mousemove', e => {
+    tmx = e.clientX / W; tmy = e.clientY / H;
+  });
+  window.addEventListener('touchmove', e => {
+    if (e.touches.length) {
+      tmx = e.touches[0].clientX / W;
+      tmy = e.touches[0].clientY / H;
+    }
+  }, { passive: true });
+  window.addEventListener('resize', () => {
+    cancelAnimationFrame(raf);
+    resize();
+    raf = requestAnimationFrame(frame);
+  });
+
+  resize();
+  raf = requestAnimationFrame(frame);
+
+})();
+</script>
+<script>
+// ── SUBTLE SCAN — linear sweep synced to 8s heartbeat cycle ──
+(function () {
+
+  const CYCLE_MS = 8000;  // must match pulse CYCLE_MS
+  const LIT_MS   = 280;   // border lit duration — brief
+  const FADE_MS  = 1400;  // long slow fade back to rest
+
+  let scanTargets = [];
+
+  function collectTargets() {
+    scanTargets = Array.from(document.querySelectorAll('[data-scan]')).map(el => ({
+      el,
+      colour: el.dataset.scan,
+      lastFired: -Infinity,
+    }));
+  }
+
+  function getScanY(ts) {
+    const t = (ts % CYCLE_MS) / CYCLE_MS;
+    return document.documentElement.scrollHeight * (1 - t);
+  }
+
+  function frame(ts) {
+    const scanY   = getScanY(ts);
+    const scrollY = window.scrollY;
+
+    scanTargets.forEach(target => {
+      const rect        = target.el.getBoundingClientRect();
+      const elCentreDoc = scrollY + rect.top + rect.height * 0.5;
+      const dist        = Math.abs(scanY - elCentreDoc);
+
+      if (dist < 60 && (ts - target.lastFired) > CYCLE_MS * 0.9) {
+        target.lastFired = ts;
+        light(target.el, target.colour);
+      }
+    });
+
+    requestAnimationFrame(frame);
+  }
+
+  function light(el, colour) {
+    el.classList.remove('scan-lit-pink', 'scan-lit-cyan', 'scan-fade');
+    void el.offsetWidth;
+    el.classList.add(colour === 'pink' ? 'scan-lit-pink' : 'scan-lit-cyan');
+    setTimeout(() => {
+      el.classList.add('scan-fade');
+      el.classList.remove('scan-lit-pink', 'scan-lit-cyan');
+      setTimeout(() => el.classList.remove('scan-fade'), FADE_MS + 50);
+    }, LIT_MS);
+  }
+
+  collectTargets();
+  window.addEventListener('resize', collectTargets);
+  requestAnimationFrame(frame);
+
+})();
+</script>
+<script>
+// ── BUTTON INK DROP ──────────────────────────────────────────
+// Radial bloom from cursor entry point — like ink in water.
+// No warp. Clean, elegant, disperses from origin.
+(function () {
+  const DURATION  = 1800;
+  const MAX_SCALE = 2.8;
+  const PEAK_AT   = 0.08;
+
+  function easeOut(t) { return 1 - Math.pow(1 - t, 3); }
+
+  function initButton(btn) {
+    const cvs = document.createElement('canvas');
+    cvs.className = 'btn-ripple-canvas';
+    btn.appendChild(cvs);
+    const ctx = cvs.getContext('2d');
+    let W, H, diagonal, raf, startTs, ox, oy;
+
+    function resize() {
+      const r = btn.getBoundingClientRect();
+      W = cvs.width  = r.width;
+      H = cvs.height = r.height;
+      diagonal = Math.sqrt(W * W + H * H);
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    function frame(ts) {
+      const elapsed = ts - startTs;
+      const t       = Math.min(elapsed / DURATION, 1);
+      const eased   = easeOut(t);
+      const radius  = eased * diagonal * MAX_SCALE;
+
+      ctx.clearRect(0, 0, W, H);
+
+      let opacity;
+      if (t < PEAK_AT) {
+        opacity = t / PEAK_AT;
+      } else {
+        opacity = Math.pow(1 - (t - PEAK_AT) / (1 - PEAK_AT), 1.6);
+      }
+      opacity *= 0.22;
+
+      const grad = ctx.createRadialGradient(ox, oy, 0, ox, oy, radius);
+      grad.addColorStop(0,    `rgba(255,255,255,${(opacity * 1.8).toFixed(3)})`);
+      grad.addColorStop(0.15, `rgba(255,255,255,${(opacity * 1.2).toFixed(3)})`);
+      grad.addColorStop(0.5,  `rgba(255,255,255,${(opacity * 0.5).toFixed(3)})`);
+      grad.addColorStop(1,    `rgba(255,255,255,0)`);
+      ctx.beginPath();
+      ctx.arc(ox, oy, Math.max(radius, 1), 0, Math.PI * 2);
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      if (t < 1) {
+        raf = requestAnimationFrame(frame);
+      } else {
+        ctx.clearRect(0, 0, W, H);
+      }
+    }
+
+    let ready = true;
+    btn.addEventListener('mouseenter', (e) => {
+      if (!ready) return;
+      ready = false;
+      if (raf) cancelAnimationFrame(raf);
+      const rect = btn.getBoundingClientRect();
+      ox = e.clientX - rect.left;
+      oy = e.clientY - rect.top;
+      startTs = null;
+      raf = requestAnimationFrame(ts => { startTs = ts; frame(ts); });
+
+      // Pulse ring — fires on the wrapper (outside overflow:hidden)
+      const wrap = btn.closest('.btn-ring-wrap');
+      if (wrap) {
+        wrap.classList.remove('ring-pulse');
+        void wrap.offsetWidth;
+        wrap.classList.add('ring-pulse');
+        wrap.addEventListener('animationend', () => {
+          wrap.classList.remove('ring-pulse');
+        }, { once: true });
+      }
+    });
+    btn.addEventListener('mouseleave', () => {
+      setTimeout(() => { ready = true; }, 100);
+    });
+  }
+
+  document.querySelectorAll('.btn-primary, .nav-cta, .btn-ghost, .btn-submit').forEach(initButton);
+})();
+</script>
+
+</body>
+</html>
