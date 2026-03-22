@@ -1186,6 +1186,10 @@ footer {
     justify-content: center;
   }
 
+  /* ── HIW — show mobile, hide desktop ── */
+  .hiw-desktop { display: none !important; }
+  .hiw-mobile  { display: block !important; }
+
   /* ── Problem section ── */
   .problem-grid {
     grid-template-columns: 1fr;
@@ -1293,18 +1297,21 @@ footer {
 /* ── PANE ZOOM HINT ── */
 .pane-zoom-hint {
   position: absolute;
-  bottom: 10px; right: 12px;
+  bottom: 0; left: 0; right: 0;
   font-family: 'Outfit', sans-serif;
   font-size: 10px; font-weight: 700;
   letter-spacing: 0.08em; text-transform: uppercase;
-  color: rgba(255,255,255,0.5);
-  background: rgba(13,9,20,0.7);
-  padding: 3px 8px;
-  border-radius: 4px;
+  color: rgba(255,255,255,0.0);
+  background: transparent;
+  padding: 10px 12px;
   pointer-events: none;
-  transition: color 0.2s;
+  text-align: right;
+  transition: color 0.25s, background 0.25s;
 }
-.pane-frame:hover .pane-zoom-hint { color: rgba(255,255,255,0.9); }
+.pane-frame:hover .pane-zoom-hint {
+  color: rgba(255,255,255,0.85);
+  background: linear-gradient(to top, rgba(13,9,20,0.75) 0%, transparent 100%);
+}
 </style>
 </head>
 <body class="variant-d">
@@ -2175,58 +2182,58 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
 
 <script>
 // ═══════════════════════════════════════════
-// DESKTOP — step card selection + pane reveal
+// ═══════════════════════════════════════════
+// DESKTOP — step cards + scoped pane carousel
 // ═══════════════════════════════════════════
 (function () {
-  const cards = document.querySelectorAll('.hiw-card');
-  const panes = document.querySelectorAll('.hiw-pane');
+  const panel = document.querySelector('.hiw-panel');
+  const cards = Array.from(document.querySelectorAll('.hiw-card'));
+  const panes = Array.from(document.querySelectorAll('.hiw-pane'));
+  if (!panel || !cards.length) return;
+
+  function resetPane(pane) {
+    // Scope ALL queries to THIS pane only
+    const slides  = Array.from(pane.querySelectorAll('.pane-slide'));
+    const dots    = Array.from(pane.querySelectorAll('.pane-dot'));
+    const arrows  = Array.from(pane.querySelectorAll('.pane-arrow'));
+    const counter = pane.querySelector('.pane-counter');
+    slides.forEach((s, i) => s.classList.toggle('active', i === 0));
+    dots.forEach((d, i)   => d.classList.toggle('active', i === 0));
+    if (arrows[0]) arrows[0].disabled = true;
+    if (arrows[1]) arrows[1].disabled = slides.length <= 1;
+    if (counter)   counter.textContent = `1 / ${slides.length}`;
+  }
 
   function activateStep(idx) {
     cards.forEach((c, i) => c.classList.toggle('active', i === idx));
     panes.forEach((p, i) => {
-      const wasActive = p.classList.contains('active');
       const willActive = i === idx;
-      if (!wasActive && willActive) {
-        // Reset slide to first before showing
-        resetPane(p);
-      }
+      if (willActive && !p.classList.contains('active')) resetPane(p);
       p.classList.toggle('active', willActive);
     });
-  }
-
-  function resetPane(pane) {
-    const slides = pane.querySelectorAll('.pane-slide');
-    const dots   = pane.querySelectorAll('.pane-dot');
-    const arrows = pane.querySelectorAll('.pane-arrow');
-    const counter = pane.querySelector('.pane-counter');
-    slides.forEach((s, i) => s.classList.toggle('active', i === 0));
-    dots.forEach((d, i) => d.classList.toggle('active', i === 0));
-    if (arrows[0]) arrows[0].disabled = true;
-    if (arrows[1]) arrows[1].disabled = slides.length <= 1;
-    if (counter) counter.textContent = `1 / ${slides.length}`;
   }
 
   cards.forEach((card, idx) => {
     card.addEventListener('click', () => activateStep(idx));
   });
 
-  // Carousel navigation per pane
+  // Scoped carousel per pane
   panes.forEach(pane => {
     const slides  = Array.from(pane.querySelectorAll('.pane-slide'));
     const dots    = Array.from(pane.querySelectorAll('.pane-dot'));
-    const arrows  = pane.querySelectorAll('.pane-arrow');
+    const arrows  = Array.from(pane.querySelectorAll('.pane-arrow'));
     const counter = pane.querySelector('.pane-counter');
     let current   = 0;
 
     function goTo(n) {
       slides[current].classList.remove('active');
-      dots[current].classList.remove('active');
+      dots[current]  && dots[current].classList.remove('active');
       current = Math.max(0, Math.min(n, slides.length - 1));
       slides[current].classList.add('active');
-      dots[current].classList.add('active');
+      dots[current]  && dots[current].classList.add('active');
       if (counter) counter.textContent = `${current + 1} / ${slides.length}`;
-      arrows[0].disabled = current === 0;
-      arrows[1].disabled = current === slides.length - 1;
+      if (arrows[0]) arrows[0].disabled = current === 0;
+      if (arrows[1]) arrows[1].disabled = current === slides.length - 1;
     }
 
     arrows.forEach(arrow => {
@@ -2240,67 +2247,63 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
 
 
 // ═══════════════════════════════════════════
-// MOBILE — accordion + carousel
+// MOBILE — accordion + scoped carousel
 // ═══════════════════════════════════════════
 (function () {
-  const cards = document.querySelectorAll('.mob-card');
+  const mobCards = Array.from(document.querySelectorAll('.mob-card'));
+  if (!mobCards.length) return;
+
+  function resetMobCarousel(card) {
+    const slides  = Array.from(card.querySelectorAll('.mob-slide'));
+    const dots    = Array.from(card.querySelectorAll('.pane-dot'));
+    const arrows  = Array.from(card.querySelectorAll('.pane-arrow'));
+    const counter = card.querySelector('.pane-counter');
+    slides.forEach((s, i) => s.classList.toggle('active', i === 0));
+    dots.forEach((d, i)   => d.classList.toggle('active', i === 0));
+    if (arrows[0]) arrows[0].disabled = true;
+    if (arrows[1]) arrows[1].disabled = slides.length <= 1;
+    if (counter)   counter.textContent = `1 / ${slides.length}`;
+  }
 
   function activateMob(idx) {
-    cards.forEach((card, i) => {
-      const wasActive = card.classList.contains('active');
+    mobCards.forEach((card, i) => {
+      const wasActive  = card.classList.contains('active');
       const willActive = i === idx;
-      // Toggle: clicking active card collapses it
       if (wasActive && willActive) {
         card.classList.remove('active');
       } else {
         card.classList.toggle('active', willActive);
-        // Reset carousel on open
         if (willActive && !wasActive) resetMobCarousel(card);
       }
     });
   }
 
-  function resetMobCarousel(card) {
-    const slides = card.querySelectorAll('.mob-slide');
-    const dots   = card.querySelectorAll('.pane-dot');
-    const arrows = card.querySelectorAll('.pane-arrow');
-    const counter = card.querySelector('.pane-counter');
-    slides.forEach((s, i) => s.classList.toggle('active', i === 0));
-    dots.forEach((d, i) => d.classList.toggle('active', i === 0));
-    if (arrows[0]) arrows[0].disabled = true;
-    if (arrows[1]) arrows[1].disabled = slides.length <= 1;
-    if (counter) counter.textContent = `1 / ${slides.length}`;
-  }
-
-  cards.forEach((card, idx) => {
+  mobCards.forEach((card, idx) => {
     card.querySelector('.mob-header').addEventListener('click', () => activateMob(idx));
 
-    // Carousel
     const slides  = Array.from(card.querySelectorAll('.mob-slide'));
     const dots    = Array.from(card.querySelectorAll('.pane-dot'));
-    const arrows  = card.querySelectorAll('.pane-arrow');
+    const arrows  = Array.from(card.querySelectorAll('.pane-arrow'));
     const counter = card.querySelector('.pane-counter');
     let current   = 0;
 
     function goTo(n) {
       slides[current].classList.remove('active');
-      dots[current].classList.remove('active');
+      dots[current]  && dots[current].classList.remove('active');
       current = Math.max(0, Math.min(n, slides.length - 1));
       slides[current].classList.add('active');
-      dots[current].classList.add('active');
+      dots[current]  && dots[current].classList.add('active');
       if (counter) counter.textContent = `${current + 1} / ${slides.length}`;
-      arrows[0].disabled = current === 0;
-      arrows[1].disabled = current === slides.length - 1;
+      if (arrows[0]) arrows[0].disabled = current === 0;
+      if (arrows[1]) arrows[1].disabled = current === slides.length - 1;
     }
 
+    // No stopPropagation — not needed and causes scroll issues on mobile
     arrows.forEach(arrow => {
-      arrow.addEventListener('click', (e) => {
-        e.stopPropagation();
-        goTo(current + parseInt(arrow.dataset.dir));
-      });
+      arrow.addEventListener('click', () => goTo(current + parseInt(arrow.dataset.dir)));
     });
     dots.forEach((dot, i) => {
-      dot.addEventListener('click', (e) => { e.stopPropagation(); goTo(i); });
+      dot.addEventListener('click', () => goTo(i));
     });
   });
 })();
