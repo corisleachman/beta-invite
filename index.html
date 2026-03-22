@@ -347,56 +347,431 @@ nav {
   line-height: 1.65;
 }
 
-/* ── HOW IT WORKS ── */
-.steps { padding: 72px 0; }
-.steps-header { text-align: center; margin-bottom: 72px; }
-.steps-grid {
+/* ── HOW IT WORKS — replaced by side-panel layout ── */
+/* ════════════════════════════════════════
+   DESKTOP LAYOUT — side-panel reveal
+   ════════════════════════════════════════ */
+.hiw-desktop {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 2px;
+  grid-template-columns: 420px 1fr;
+  gap: 0;
+  align-items: stretch;
+  min-height: 520px;
 }
-.step-card {
-  background: var(--s);
-  border: 1px solid var(--b);
-  padding: 40px 36px;
+
+/* ── LEFT: card stack ── */
+.hiw-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border-right: 1px solid var(--b);
+  padding-right: 0;
+}
+
+.hiw-card {
+  padding: 28px 32px;
+  border-bottom: 1px solid var(--b);
+  cursor: pointer;
   position: relative;
+  transition: background 0.25s;
+  user-select: none;
   overflow: hidden;
-  transition: background 0.3s, border-color 0.3s;
 }
-.step-card:first-child { border-radius: 16px 0 0 16px; }
-.step-card:last-child  { border-radius: 0 16px 16px 0; }
-.step-card:hover { background: var(--s2); border-color: var(--b2); }
-.step-card::after {
+.hiw-card:first-child { border-radius: 16px 0 0 0; }
+.hiw-card:last-child  { border-bottom: none; border-radius: 0 0 0 16px; }
+.hiw-card:hover { background: var(--s); }
+
+/* Active card state */
+.hiw-card.active {
+  background: rgba(255,20,147,0.05);
+  border-right: none;
+}
+/* Pink left bar on active */
+.hiw-card.active::before {
   content: '';
   position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 2px;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
   background: var(--grad);
-  opacity: 0;
-  transition: opacity 0.3s;
+  border-radius: 0 2px 2px 0;
 }
-.step-card:hover::after { opacity: 1; }
-.step-num {
+/* Arrow pointing right — appears on active, sits at right edge */
+.hiw-card.active::after {
+  content: '';
+  position: absolute;
+  right: -1px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0; height: 0;
+  border-top: 10px solid transparent;
+  border-bottom: 10px solid transparent;
+  border-left: 10px solid rgba(255,20,147,0.12);
+  filter: drop-shadow(0 0 8px rgba(255,20,147,0.3));
+}
+
+.card-num {
   font-family: 'Outfit', sans-serif;
-  font-size: 48px;
-  font-weight: 900;
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  margin-bottom: 10px;
   background: var(--grad-text);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  line-height: 1;
-  margin-bottom: 20px;
-  letter-spacing: -0.04em;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
-.step-title {
+.card-num::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--b);
+}
+.card-title {
   font-family: 'Outfit', sans-serif;
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--t);
-  letter-spacing: -0.02em;
-  margin-bottom: 12px;
+  font-size: 20px; font-weight: 700;
+  letter-spacing: -0.02em; color: var(--t);
+  margin-bottom: 8px;
+  transition: color 0.2s;
 }
-.step-body { font-size: 14px; color: var(--tm); line-height: 1.65; }
+.card-body {
+  font-size: 13px; color: var(--tm);
+  line-height: 1.65;
+}
+
+/* "Click to see" hint */
+.card-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 14px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--td);
+  transition: color 0.25s;
+}
+.card-hint svg {
+  width: 12px; height: 12px;
+  stroke: currentColor; fill: none;
+  stroke-width: 2; stroke-linecap: round;
+  transition: transform 0.25s;
+}
+.hiw-card:hover .card-hint,
+.hiw-card.active .card-hint { color: var(--pink); }
+.hiw-card.active .card-hint svg { transform: translateX(3px); }
+.hiw-card.active .card-hint .hint-text { display: none; }
+.hiw-card.active .card-hint .active-text { display: inline; }
+.hiw-card:not(.active) .card-hint .active-text { display: none; }
+
+/* ── RIGHT: image panel ── */
+.hiw-panel {
+  position: relative;
+  background: rgba(13,9,20,0.5);
+  border-radius: 0 16px 16px 0;
+  border: 1px solid var(--b);
+  border-left: none;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Panel pane — one per step, shown/hidden */
+.hiw-pane {
+  display: none;
+  flex-direction: column;
+  padding: 28px;
+}
+.hiw-pane.active {
+  display: flex;
+  animation: paneIn 0.35s ease forwards;
+}
+@keyframes paneIn {
+  from { opacity: 0; transform: translateX(12px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* Pane header */
+.pane-label {
+  font-family: 'Outfit', sans-serif;
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--td); margin-bottom: 6px;
+}
+.pane-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 15px; font-weight: 700;
+  color: var(--t); letter-spacing: -0.01em;
+  margin-bottom: 20px;
+}
+
+/* Screenshot carousel */
+.pane-carousel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.pane-slides {
+  position: relative;
+  width: 100%;
+}
+.pane-slide {
+  display: none;
+}
+.pane-slide.active {
+  display: block;
+}
+.pane-slide img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 10px;
+  border: 1px solid var(--b2);
+}
+
+/* Placeholder when no real image yet */
+.img-placeholder {
+  width: 100%; height: 100%;
+  min-height: 280px;
+  border-radius: 10px;
+  border: 1px solid var(--b2);
+  background: var(--s);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  position: relative;
+  overflow: hidden;
+}
+.img-placeholder::before {
+  content: '';
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(var(--b) 1px, transparent 1px),
+    linear-gradient(90deg, var(--b) 1px, transparent 1px);
+  background-size: 32px 24px;
+  opacity: 0.5;
+}
+.img-placeholder-label {
+  position: relative;
+  font-family: 'Outfit', sans-serif;
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--td); text-align: center;
+  padding: 8px 16px;
+  background: var(--s2);
+  border: 1px solid var(--b2);
+  border-radius: 6px;
+}
+.img-placeholder-num {
+  position: relative;
+  font-family: 'Outfit', sans-serif;
+  font-size: 40px; font-weight: 900;
+  background: var(--grad-text);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  opacity: 0.3;
+}
+
+/* Carousel nav — sits ABOVE the image */
+.pane-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  min-height: 28px;
+}
+.pane-dots {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.pane-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--b2);
+  cursor: pointer;
+  transition: all 0.25s;
+  border: none;
+  padding: 0;
+}
+.pane-dot.active {
+  width: 18px;
+  border-radius: 3px;
+  background: var(--grad);
+}
+.pane-arrows {
+  display: flex;
+  gap: 6px;
+}
+.pane-arrow {
+  width: 28px; height: 28px;
+  border-radius: 7px;
+  background: var(--s);
+  border: 1px solid var(--b2);
+  color: var(--tm);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 12px;
+}
+.pane-arrow:hover { background: var(--s2); color: var(--t); border-color: rgba(255,255,255,0.25); }
+.pane-arrow:disabled { opacity: 0.3; cursor: default; }
+
+/* Slide counter */
+.pane-counter {
+  font-family: 'Outfit', sans-serif;
+  font-size: 11px; font-weight: 600;
+  color: var(--td);
+  letter-spacing: 0.06em;
+}
+
+/* ════════════════════════════════════════
+   MOBILE LAYOUT — accordion
+   ════════════════════════════════════════ */
+.hiw-mobile {
+  display: none;
+}
+
+.mob-card {
+  border: 1px solid var(--b);
+  border-radius: 14px;
+  overflow: hidden;
+  margin-bottom: 10px;
+  transition: border-color 0.25s;
+}
+.mob-card.active { border-color: rgba(255,20,147,0.3); }
+
+.mob-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 20px 20px;
+  cursor: pointer;
+  background: var(--s);
+  transition: background 0.2s;
+  gap: 12px;
+}
+.mob-card.active .mob-header {
+  background: rgba(255,20,147,0.05);
+}
+.mob-header-left { flex: 1; }
+.mob-card-num {
+  font-family: 'Outfit', sans-serif;
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  background: var(--grad-text);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 6px;
+}
+.mob-card-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 17px; font-weight: 700;
+  letter-spacing: -0.02em; color: var(--t);
+  margin-bottom: 4px;
+}
+.mob-card-body {
+  font-size: 13px; color: var(--tm); line-height: 1.6;
+}
+
+/* Expand icon */
+.mob-expand {
+  width: 28px; height: 28px; flex-shrink: 0;
+  border-radius: 7px;
+  background: var(--s2);
+  border: 1px solid var(--b2);
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.3s;
+  margin-top: 2px;
+}
+.mob-expand svg {
+  width: 14px; height: 14px;
+  stroke: var(--tm); fill: none;
+  stroke-width: 2; stroke-linecap: round;
+  transition: transform 0.3s ease;
+}
+.mob-card.active .mob-expand {
+  background: rgba(255,20,147,0.1);
+  border-color: rgba(255,20,147,0.25);
+}
+.mob-card.active .mob-expand svg { transform: rotate(180deg); stroke: var(--pink); }
+
+/* Accordion body — slides open */
+.mob-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.mob-card.active .mob-body { max-height: 600px; }
+
+.mob-inner {
+  padding: 16px 20px 20px;
+  border-top: 1px solid var(--b);
+  background: rgba(13,9,20,0.4);
+}
+
+/* Mobile carousel */
+.mob-slides {
+  position: relative;
+  width: 100%;
+}
+.mob-slide {
+  display: none;
+}
+.mob-slide.active { display: block; }
+.mob-slide img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 10px;
+  border: 1px solid var(--b2);
+}
+.mob-img-placeholder {
+  width: 100%; aspect-ratio: 16/9;
+  border-radius: 10px;
+  border: 1px solid var(--b2);
+  background: var(--s);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  position: relative;
+  overflow: hidden;
+}
+.mob-img-placeholder::before {
+  content: '';
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(var(--b) 1px, transparent 1px),
+    linear-gradient(90deg, var(--b) 1px, transparent 1px);
+  background-size: 32px 24px;
+  opacity: 0.5;
+}
+.mob-img-placeholder-label {
+  position: relative;
+  font-family: 'Outfit', sans-serif;
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--td); text-align: center;
+  padding: 6px 12px;
+  background: var(--s2);
+  border: 1px solid var(--b2);
+  border-radius: 6px;
+}
+
+.mob-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+}
 
 /* ── FEATURES SECTION ── */
 .features { padding: 100px 0; }
@@ -817,13 +1192,7 @@ footer {
     gap: 32px;
   }
 
-  /* ── Steps — stack vertically, fix border radius ── */
-  .steps-grid {
-    grid-template-columns: 1fr;
-    gap: 2px;
-  }
-  .step-card:first-child { border-radius: 16px 16px 0 0; }
-  .step-card:last-child  { border-radius: 0 0 16px 16px; }
+
 
   /* ── Features ── */
   .features-grid {
@@ -887,10 +1256,7 @@ footer {
     padding: 20px;
   }
 
-  /* ── Step cards ── */
-  .step-card {
-    padding: 20px;
-  }
+
 
   /* ── Access ── */
   .access-inner {
@@ -978,29 +1344,223 @@ footer {
   <div class="grad-line"></div>
 
   <!-- HOW IT WORKS -->
-  <section class="steps" id="how">
+  <section class="steps" id="how" style="padding: 80px 0 100px;">
     <div class="container">
-      <div class="steps-header reveal">
-        <div class="section-label" style="text-align:center;">How it works</div>
-        <h2 class="section-headline" style="text-align:center;max-width:500px;margin:0 auto;">Three steps. Then it runs itself.</h2>
+
+      <div class="section-label reveal" style="text-align:center;">How it works</div>
+      <h2 class="section-headline reveal" style="text-align:center;max-width:500px;margin:0 auto 12px;">Three steps. Then it runs itself.</h2>
+      <p style="font-size:16px;color:var(--tm);text-align:center;max-width:480px;margin:0 auto 72px;line-height:1.65;" class="reveal">A calmer system for staying consistent — import your prospects, send with intention, and let Pulse keep the momentum going.</p>
+
+      <!-- DESKTOP — side-panel layout -->
+      <div class="hiw-desktop reveal">
+
+        <div class="hiw-cards">
+
+          <div class="hiw-card active" data-step="0">
+            <div class="card-num">01</div>
+            <div class="card-title">Import and review</div>
+            <p class="card-body">Bring in any prospect list via CSV or manual entry. Review each contact — approve the ones worth reaching out to, skip the noise. Every list has it. This is where you cut it.</p>
+            <div class="card-hint">
+              <span class="hint-text">See it in action</span>
+              <span class="active-text">Viewing</span>
+              <svg viewBox="0 0 12 12"><path d="M2 6h8M7 3l3 3-3 3"/></svg>
+            </div>
+          </div>
+
+          <div class="hiw-card" data-step="1">
+            <div class="card-num">02</div>
+            <div class="card-title">Send with intention</div>
+            <p class="card-body">Drafts are generated for each approved prospect. You review the message, adjust if needed, and approve. Nothing sends without your eyes on it first — because personalisation matters.</p>
+            <div class="card-hint">
+              <span class="hint-text">See it in action</span>
+              <span class="active-text">Viewing</span>
+              <svg viewBox="0 0 12 12"><path d="M2 6h8M7 3l3 3-3 3"/></svg>
+            </div>
+          </div>
+
+          <div class="hiw-card" data-step="2">
+            <div class="card-num">03</div>
+            <div class="card-title">Never lose momentum</div>
+            <p class="card-body">Follow-ups appear in your queue when they're due. Conversations surface automatically. The next action is always obvious — so outreach keeps moving even when life gets busy.</p>
+            <div class="card-hint">
+              <span class="hint-text">See it in action</span>
+              <span class="active-text">Viewing</span>
+              <svg viewBox="0 0 12 12"><path d="M2 6h8M7 3l3 3-3 3"/></svg>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="hiw-panel">
+
+          <div class="hiw-pane active" data-pane="0">
+            <div class="pane-label">Step 01</div>
+            <div class="pane-title">Import and review</div>
+            <div class="pane-nav">
+              <div class="pane-dots">
+                <button class="pane-dot active"></button>
+                <button class="pane-dot"></button>
+                <button class="pane-dot"></button>
+              </div>
+              <span class="pane-counter">1 / 3</span>
+              <div class="pane-arrows">
+                <button class="pane-arrow" data-dir="-1" disabled>←</button>
+                <button class="pane-arrow" data-dir="1">→</button>
+              </div>
+            </div>
+            <div class="pane-carousel">
+              <div class="pane-slides">
+                <div class="pane-slide active"><a class="pane-frame" data-lb-open><img src="assets/01. Import 1.png" alt="Import screen 1"></a><p class="pane-zoom-hint">Click to expand ↗</p></div>
+                <div class="pane-slide"><a class="pane-frame" data-lb-open><img src="assets/01. Import 2.png" alt="Import screen 2"></a></div>
+                <div class="pane-slide"><a class="pane-frame" data-lb-open><img src="assets/01. Import 3.png" alt="Import screen 3"></a></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="hiw-pane" data-pane="1">
+            <div class="pane-label">Step 02</div>
+            <div class="pane-title">Send with intention</div>
+            <div class="pane-nav">
+              <div class="pane-dots">
+                <button class="pane-dot active"></button>
+                <button class="pane-dot"></button>
+              </div>
+              <span class="pane-counter">1 / 2</span>
+              <div class="pane-arrows">
+                <button class="pane-arrow" data-dir="-1" disabled>←</button>
+                <button class="pane-arrow" data-dir="1">→</button>
+              </div>
+            </div>
+            <div class="pane-carousel">
+              <div class="pane-slides">
+                <div class="pane-slide active"><a class="pane-frame" data-lb-open><img src="assets/02. Send 1.png" alt="Send screen 1"></a><p class="pane-zoom-hint">Click to expand ↗</p></div>
+                <div class="pane-slide"><a class="pane-frame" data-lb-open><img src="assets/02. Send 2.png" alt="Send screen 2"></a></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="hiw-pane" data-pane="2">
+            <div class="pane-label">Step 03</div>
+            <div class="pane-title">Never lose momentum</div>
+            <div class="pane-nav">
+              <div class="pane-dots">
+                <button class="pane-dot active"></button>
+                <button class="pane-dot"></button>
+              </div>
+              <span class="pane-counter">1 / 2</span>
+              <div class="pane-arrows">
+                <button class="pane-arrow" data-dir="-1" disabled>←</button>
+                <button class="pane-arrow" data-dir="1">→</button>
+              </div>
+            </div>
+            <div class="pane-carousel">
+              <div class="pane-slides">
+                <div class="pane-slide active"><a class="pane-frame" data-lb-open><img src="assets/03. Follow-up1.png" alt="Follow-up screen 1"></a><p class="pane-zoom-hint">Click to expand ↗</p></div>
+                <div class="pane-slide"><a class="pane-frame" data-lb-open><img src="assets/03. Follow-up2.png" alt="Follow-up screen 2"></a></div>
+              </div>
+            </div>
+          </div>
+
+        </div>
       </div>
-      <div class="steps-grid reveal">
-        <div class="step-card" data-scan="pink">
-          <div class="step-num">01</div>
-          <div class="step-title">Import and review</div>
-          <p class="step-body">Bring in any prospect list. Review who's worth contacting. Every list has noise — this is where you cut it.</p>
+
+      <!-- MOBILE — accordion layout -->
+      <div class="hiw-mobile">
+
+        <div class="mob-card active" data-mob="0">
+          <div class="mob-header">
+            <div class="mob-header-left">
+              <div class="mob-card-num">01</div>
+              <div class="mob-card-title">Import and review</div>
+              <div class="mob-card-body">Bring in any prospect list, review who's worth contacting, and cut the noise before you send a single email.</div>
+            </div>
+            <div class="mob-expand"><svg viewBox="0 0 14 14"><path d="M2 5l5 5 5-5"/></svg></div>
+          </div>
+          <div class="mob-body">
+            <div class="mob-inner">
+              <div class="mob-slides">
+                <div class="mob-slide active"><div class="mob-frame"><img src="assets/01. Import 1.png" alt="Import screen 1"></div></div>
+                <div class="mob-slide"><div class="mob-frame"><img src="assets/01. Import 2.png" alt="Import screen 2"></div></div>
+                <div class="mob-slide"><div class="mob-frame"><img src="assets/01. Import 3.png" alt="Import screen 3"></div></div>
+              </div>
+              <div class="mob-nav">
+                <div class="pane-dots">
+                  <button class="pane-dot active"></button>
+                  <button class="pane-dot"></button>
+                  <button class="pane-dot"></button>
+                </div>
+                <span class="pane-counter">1 / 3</span>
+                <div class="pane-arrows">
+                  <button class="pane-arrow" data-dir="-1" disabled>←</button>
+                  <button class="pane-arrow" data-dir="1">→</button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="step-card" data-scan="cyan">
-          <div class="step-num">02</div>
-          <div class="step-title">Send with intention</div>
-          <p class="step-body">Drafts are generated. You review and approve. Nothing sends without your eyes on it first.</p>
+
+        <div class="mob-card" data-mob="1">
+          <div class="mob-header">
+            <div class="mob-header-left">
+              <div class="mob-card-num">02</div>
+              <div class="mob-card-title">Send with intention</div>
+              <div class="mob-card-body">Drafts are generated, you review and approve. Nothing sends without your eyes on it first.</div>
+            </div>
+            <div class="mob-expand"><svg viewBox="0 0 14 14"><path d="M2 5l5 5 5-5"/></svg></div>
+          </div>
+          <div class="mob-body">
+            <div class="mob-inner">
+              <div class="mob-slides">
+                <div class="mob-slide active"><div class="mob-frame"><img src="assets/02. Send 1.png" alt="Send screen 1"></div></div>
+                <div class="mob-slide"><div class="mob-frame"><img src="assets/02. Send 2.png" alt="Send screen 2"></div></div>
+              </div>
+              <div class="mob-nav">
+                <div class="pane-dots">
+                  <button class="pane-dot active"></button>
+                  <button class="pane-dot"></button>
+                </div>
+                <span class="pane-counter">1 / 2</span>
+                <div class="pane-arrows">
+                  <button class="pane-arrow" data-dir="-1" disabled>←</button>
+                  <button class="pane-arrow" data-dir="1">→</button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="step-card" data-scan="pink">
-          <div class="step-num">03</div>
-          <div class="step-title">Never lose momentum</div>
-          <p class="step-body">Follow-ups appear when they're due. Conversations surface automatically. The next step is always obvious.</p>
+
+        <div class="mob-card" data-mob="2">
+          <div class="mob-header">
+            <div class="mob-header-left">
+              <div class="mob-card-num">03</div>
+              <div class="mob-card-title">Never lose momentum</div>
+              <div class="mob-card-body">Follow-ups surface when they're due. The next action is always obvious.</div>
+            </div>
+            <div class="mob-expand"><svg viewBox="0 0 14 14"><path d="M2 5l5 5 5-5"/></svg></div>
+          </div>
+          <div class="mob-body">
+            <div class="mob-inner">
+              <div class="mob-slides">
+                <div class="mob-slide active"><div class="mob-frame"><img src="assets/03. Follow-up1.png" alt="Follow-up screen 1"></div></div>
+                <div class="mob-slide"><div class="mob-frame"><img src="assets/03. Follow-up2.png" alt="Follow-up screen 2"></div></div>
+              </div>
+              <div class="mob-nav">
+                <div class="pane-dots">
+                  <button class="pane-dot active"></button>
+                  <button class="pane-dot"></button>
+                </div>
+                <span class="pane-counter">1 / 2</span>
+                <div class="pane-arrows">
+                  <button class="pane-arrow" data-dir="-1" disabled>←</button>
+                  <button class="pane-arrow" data-dir="1">→</button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
+
       </div>
+
     </div>
   </section>
 
@@ -1578,6 +2138,322 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
   }
 
   document.querySelectorAll('.btn-primary, .nav-cta, .btn-ghost, .btn-submit').forEach(initButton);
+})();
+</script>
+
+
+
+<script>
+// ═══════════════════════════════════════════
+// DESKTOP — step card selection + pane reveal
+// ═══════════════════════════════════════════
+(function () {
+  const cards = document.querySelectorAll('.hiw-card');
+  const panes = document.querySelectorAll('.hiw-pane');
+
+  function activateStep(idx) {
+    cards.forEach((c, i) => c.classList.toggle('active', i === idx));
+    panes.forEach((p, i) => {
+      const wasActive = p.classList.contains('active');
+      const willActive = i === idx;
+      if (!wasActive && willActive) {
+        // Reset slide to first before showing
+        resetPane(p);
+      }
+      p.classList.toggle('active', willActive);
+    });
+  }
+
+  function resetPane(pane) {
+    const slides = pane.querySelectorAll('.pane-slide');
+    const dots   = pane.querySelectorAll('.pane-dot');
+    const arrows = pane.querySelectorAll('.pane-arrow');
+    const counter = pane.querySelector('.pane-counter');
+    slides.forEach((s, i) => s.classList.toggle('active', i === 0));
+    dots.forEach((d, i) => d.classList.toggle('active', i === 0));
+    if (arrows[0]) arrows[0].disabled = true;
+    if (arrows[1]) arrows[1].disabled = slides.length <= 1;
+    if (counter) counter.textContent = `1 / ${slides.length}`;
+  }
+
+  cards.forEach((card, idx) => {
+    card.addEventListener('click', () => activateStep(idx));
+  });
+
+  // Carousel navigation per pane
+  panes.forEach(pane => {
+    const slides  = Array.from(pane.querySelectorAll('.pane-slide'));
+    const dots    = Array.from(pane.querySelectorAll('.pane-dot'));
+    const arrows  = pane.querySelectorAll('.pane-arrow');
+    const counter = pane.querySelector('.pane-counter');
+    let current   = 0;
+
+    function goTo(n) {
+      slides[current].classList.remove('active');
+      dots[current].classList.remove('active');
+      current = Math.max(0, Math.min(n, slides.length - 1));
+      slides[current].classList.add('active');
+      dots[current].classList.add('active');
+      if (counter) counter.textContent = `${current + 1} / ${slides.length}`;
+      arrows[0].disabled = current === 0;
+      arrows[1].disabled = current === slides.length - 1;
+    }
+
+    arrows.forEach(arrow => {
+      arrow.addEventListener('click', () => goTo(current + parseInt(arrow.dataset.dir)));
+    });
+    dots.forEach((dot, i) => {
+      dot.addEventListener('click', () => goTo(i));
+    });
+  });
+})();
+
+
+// ═══════════════════════════════════════════
+// MOBILE — accordion + carousel
+// ═══════════════════════════════════════════
+(function () {
+  const cards = document.querySelectorAll('.mob-card');
+
+  function activateMob(idx) {
+    cards.forEach((card, i) => {
+      const wasActive = card.classList.contains('active');
+      const willActive = i === idx;
+      // Toggle: clicking active card collapses it
+      if (wasActive && willActive) {
+        card.classList.remove('active');
+      } else {
+        card.classList.toggle('active', willActive);
+        // Reset carousel on open
+        if (willActive && !wasActive) resetMobCarousel(card);
+      }
+    });
+  }
+
+  function resetMobCarousel(card) {
+    const slides = card.querySelectorAll('.mob-slide');
+    const dots   = card.querySelectorAll('.pane-dot');
+    const arrows = card.querySelectorAll('.pane-arrow');
+    const counter = card.querySelector('.pane-counter');
+    slides.forEach((s, i) => s.classList.toggle('active', i === 0));
+    dots.forEach((d, i) => d.classList.toggle('active', i === 0));
+    if (arrows[0]) arrows[0].disabled = true;
+    if (arrows[1]) arrows[1].disabled = slides.length <= 1;
+    if (counter) counter.textContent = `1 / ${slides.length}`;
+  }
+
+  cards.forEach((card, idx) => {
+    card.querySelector('.mob-header').addEventListener('click', () => activateMob(idx));
+
+    // Carousel
+    const slides  = Array.from(card.querySelectorAll('.mob-slide'));
+    const dots    = Array.from(card.querySelectorAll('.pane-dot'));
+    const arrows  = card.querySelectorAll('.pane-arrow');
+    const counter = card.querySelector('.pane-counter');
+    let current   = 0;
+
+    function goTo(n) {
+      slides[current].classList.remove('active');
+      dots[current].classList.remove('active');
+      current = Math.max(0, Math.min(n, slides.length - 1));
+      slides[current].classList.add('active');
+      dots[current].classList.add('active');
+      if (counter) counter.textContent = `${current + 1} / ${slides.length}`;
+      arrows[0].disabled = current === 0;
+      arrows[1].disabled = current === slides.length - 1;
+    }
+
+    arrows.forEach(arrow => {
+      arrow.addEventListener('click', (e) => {
+        e.stopPropagation();
+        goTo(current + parseInt(arrow.dataset.dir));
+      });
+    });
+    dots.forEach((dot, i) => {
+      dot.addEventListener('click', (e) => { e.stopPropagation(); goTo(i); });
+    });
+  });
+})();
+</script>
+
+<!-- ── LIGHTBOX ── -->
+<div class="lightbox" id="lightbox">
+  <div class="lightbox-inner">
+    <div class="lightbox-topbar">
+      <span class="lightbox-label" id="lb-label">Step 01 — Import and review</span>
+      <button class="lightbox-close" id="lb-close">✕</button>
+    </div>
+    <div class="lightbox-frame">
+      <img id="lb-img" src="" alt="">
+    </div>
+    <div class="lightbox-nav">
+      <div class="lightbox-dots" id="lb-dots"></div>
+      <span class="lightbox-counter" id="lb-counter"></span>
+      <div class="lightbox-arrows">
+        <button class="lightbox-arrow" id="lb-prev">←</button>
+        <button class="lightbox-arrow" id="lb-next">→</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── LIGHTBOX ENGINE ────────────────────────────────────
+(function () {
+  const lightbox = document.getElementById('lightbox');
+  const lbImg    = document.getElementById('lb-img');
+  const lbLabel  = document.getElementById('lb-label');
+  const lbDots   = document.getElementById('lb-dots');
+  const lbCounter= document.getElementById('lb-counter');
+  const lbPrev   = document.getElementById('lb-prev');
+  const lbNext   = document.getElementById('lb-next');
+  const lbClose  = document.getElementById('lb-close');
+
+  let images  = [];  // array of {src, alt}
+  let current = 0;
+  let label   = '';
+
+  function openLightbox(pane, startIdx) {
+    // Collect all images from this pane
+    images = Array.from(pane.querySelectorAll('.pane-frame img')).map(img => ({
+      src: img.src, alt: img.alt
+    }));
+    label   = (pane.querySelector('.pane-title') || {}).textContent || '';
+    current = startIdx;
+    lbLabel.textContent = label;
+    renderLb();
+    lightbox.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeLightbox() {
+    lightbox.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  function renderLb() {
+    lbImg.src = images[current].src;
+    lbImg.alt = images[current].alt;
+    lbCounter.textContent = images.length > 1 ? `${current + 1} / ${images.length}` : '';
+    lbPrev.disabled = current === 0;
+    lbNext.disabled = current === images.length - 1;
+    // Dots
+    lbDots.innerHTML = '';
+    if (images.length > 1) {
+      images.forEach((_, i) => {
+        const d = document.createElement('button');
+        d.className = 'pane-dot' + (i === current ? ' active' : '');
+        d.addEventListener('click', () => { current = i; renderLb(); });
+        lbDots.appendChild(d);
+      });
+    }
+  }
+
+  lbPrev.addEventListener('click', () => { if (current > 0) { current--; renderLb(); }});
+  lbNext.addEventListener('click', () => { if (current < images.length - 1) { current++; renderLb(); }});
+  lbClose.addEventListener('click', closeLightbox);
+  lightbox.addEventListener('click', e => { if (e.target === lightbox) closeLightbox(); });
+  document.addEventListener('keydown', e => {
+    if (!lightbox.classList.contains('open')) return;
+    if (e.key === 'Escape')     closeLightbox();
+    if (e.key === 'ArrowRight' && current < images.length - 1) { current++; renderLb(); }
+    if (e.key === 'ArrowLeft'  && current > 0)                 { current--; renderLb(); }
+  });
+
+  // Wire up click on desktop pane frames
+  // Use event delegation on the hiw-panel
+  document.querySelectorAll('.hiw-panel').forEach(panel => {
+    panel.addEventListener('click', e => {
+      const frame = e.target.closest('.pane-frame');
+      if (!frame) return;
+      const pane     = frame.closest('.hiw-pane');
+      const allFrames = Array.from(pane.querySelectorAll('.pane-frame'));
+      const idx      = allFrames.indexOf(frame);
+      openLightbox(pane, idx >= 0 ? idx : 0);
+    });
+  });
+
+})();
+</script>
+</body>
+</html>
+
+<script>
+// ── LIGHTBOX ENGINE ────────────────────────────────────
+(function () {
+  const lightbox = document.getElementById('lightbox');
+  const lbImg    = document.getElementById('lb-img');
+  const lbLabel  = document.getElementById('lb-label');
+  const lbDots   = document.getElementById('lb-dots');
+  const lbCounter= document.getElementById('lb-counter');
+  const lbPrev   = document.getElementById('lb-prev');
+  const lbNext   = document.getElementById('lb-next');
+  const lbClose  = document.getElementById('lb-close');
+
+  let images  = [];  // array of {src, alt}
+  let current = 0;
+  let label   = '';
+
+  function openLightbox(pane, startIdx) {
+    // Collect all images from this pane
+    images = Array.from(pane.querySelectorAll('.pane-frame img')).map(img => ({
+      src: img.src, alt: img.alt
+    }));
+    label   = (pane.querySelector('.pane-title') || {}).textContent || '';
+    current = startIdx;
+    lbLabel.textContent = label;
+    renderLb();
+    lightbox.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeLightbox() {
+    lightbox.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  function renderLb() {
+    lbImg.src = images[current].src;
+    lbImg.alt = images[current].alt;
+    lbCounter.textContent = images.length > 1 ? `${current + 1} / ${images.length}` : '';
+    lbPrev.disabled = current === 0;
+    lbNext.disabled = current === images.length - 1;
+    // Dots
+    lbDots.innerHTML = '';
+    if (images.length > 1) {
+      images.forEach((_, i) => {
+        const d = document.createElement('button');
+        d.className = 'pane-dot' + (i === current ? ' active' : '');
+        d.addEventListener('click', () => { current = i; renderLb(); });
+        lbDots.appendChild(d);
+      });
+    }
+  }
+
+  lbPrev.addEventListener('click', () => { if (current > 0) { current--; renderLb(); }});
+  lbNext.addEventListener('click', () => { if (current < images.length - 1) { current++; renderLb(); }});
+  lbClose.addEventListener('click', closeLightbox);
+  lightbox.addEventListener('click', e => { if (e.target === lightbox) closeLightbox(); });
+  document.addEventListener('keydown', e => {
+    if (!lightbox.classList.contains('open')) return;
+    if (e.key === 'Escape')     closeLightbox();
+    if (e.key === 'ArrowRight' && current < images.length - 1) { current++; renderLb(); }
+    if (e.key === 'ArrowLeft'  && current > 0)                 { current--; renderLb(); }
+  });
+
+  // Wire up click on desktop pane frames
+  // Use event delegation on the hiw-panel
+  document.querySelectorAll('.hiw-panel').forEach(panel => {
+    panel.addEventListener('click', e => {
+      const frame = e.target.closest('.pane-frame');
+      if (!frame) return;
+      const pane     = frame.closest('.hiw-pane');
+      const allFrames = Array.from(pane.querySelectorAll('.pane-frame'));
+      const idx      = allFrames.indexOf(frame);
+      openLightbox(pane, idx >= 0 ? idx : 0);
+    });
+  });
+
 })();
 </script>
 
