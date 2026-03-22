@@ -1780,17 +1780,13 @@ footer {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   z-index: 2000;
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: center;
   padding: 24px;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s ease;
 }
 .lightbox.open {
-  opacity: 1;
-  pointer-events: all;
+  display: flex;
 }
 .lightbox-inner {
   width: 100%;
@@ -2942,16 +2938,22 @@ document.addEventListener('keydown', () => {
     current = startIdx;
     lbLabel.textContent = label;
     renderLb();
-    // rAF ensures transition fires — without it browser may skip opacity change
-    requestAnimationFrame(() => {
-      lightbox.classList.add('open');
-    });
+    lightbox.classList.add('open');
+    lightbox.style.opacity = '0';
+    lightbox.style.transition = 'opacity 0.3s ease';
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      lightbox.style.opacity = '1';
+    }));
     document.body.style.overflow = 'hidden';
   }
 
   function closeLightbox() {
-    lightbox.classList.remove('open');
-    // Always restore scroll — belt and braces
+    lightbox.style.opacity = '0';
+    setTimeout(() => {
+      lightbox.classList.remove('open');
+      lightbox.style.opacity = '';
+      lightbox.style.transition = '';
+    }, 300);
     document.body.style.overflow = '';
     document.documentElement.style.overflow = '';
   }
