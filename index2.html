@@ -1290,20 +1290,15 @@ footer {
 /* ── PANE ZOOM HINT ── */
 .pane-zoom-hint {
   position: absolute;
-  bottom: 0; left: 0; right: 0;
+  bottom: 8px; right: 10px;
   font-family: 'Outfit', sans-serif;
   font-size: 10px; font-weight: 700;
-  letter-spacing: 0.08em; text-transform: uppercase;
-  color: rgba(255,255,255,0.0);
-  background: transparent;
-  padding: 10px 12px;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  color: rgba(255,255,255,0.75);
+  background: rgba(13,9,20,0.65);
+  padding: 4px 8px;
+  border-radius: 4px;
   pointer-events: none;
-  text-align: right;
-  transition: color 0.25s, background 0.25s;
-}
-.pane-frame:hover .pane-zoom-hint {
-  color: rgba(255,255,255,0.85);
-  background: linear-gradient(to top, rgba(13,9,20,0.75) 0%, transparent 100%);
 }
 
 
@@ -2759,6 +2754,14 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
   }
 
   document.querySelectorAll('.btn-primary, .nav-cta, .btn-ghost, .btn-submit').forEach(initButton);
+// Safety: ensure scroll is never locked unless lightbox is open
+document.addEventListener('keydown', () => {
+  const lb = document.getElementById('lightbox');
+  if (lb && !lb.classList.contains('open')) {
+    document.body.style.overflow = '';
+    document.documentElement.style.overflow = '';
+  }
+});
 })();
 </script>
 
@@ -2939,13 +2942,18 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
     current = startIdx;
     lbLabel.textContent = label;
     renderLb();
-    lightbox.classList.add('open');
+    // rAF ensures transition fires — without it browser may skip opacity change
+    requestAnimationFrame(() => {
+      lightbox.classList.add('open');
+    });
     document.body.style.overflow = 'hidden';
   }
 
   function closeLightbox() {
     lightbox.classList.remove('open');
+    // Always restore scroll — belt and braces
     document.body.style.overflow = '';
+    document.documentElement.style.overflow = '';
   }
 
   function renderLb() {
