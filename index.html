@@ -1062,6 +1062,9 @@ footer {
   background-clip: text;
 }
 .footer-note { font-size: 12px; color: var(--td); }
+.footer-links { display: flex; flex-wrap: wrap; gap: 20px; font-size: 12px; }
+.footer-links a { color: var(--td); text-decoration: none; transition: color 0.2s; }
+.footer-links a:hover { color: var(--t); }
 
 /* ── ANIMATIONS ── */
 @keyframes fadeUp {
@@ -1231,6 +1234,9 @@ footer {
   /* ── Footer ── */
   footer {
     padding: 24px 20px;
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
   }
 
   /* ── Section padding ── */
@@ -2382,6 +2388,11 @@ footer {
 <footer>
   <div class="footer-logo">Pulse<span>.</span></div>
   <div class="footer-note">Invite-only beta · Built with care · Your data stays yours</div>
+  <div class="footer-links">
+    <a href="https://app.pulse-outreach.co.uk/legal/privacy">Privacy Policy</a>
+    <a href="https://app.pulse-outreach.co.uk/legal/terms">Terms of Service</a>
+    <a href="https://app.pulse-outreach.co.uk/login">Sign in</a>
+  </div>
 </footer>
 
 
